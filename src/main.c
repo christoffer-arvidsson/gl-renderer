@@ -1,4 +1,6 @@
 
+#include "constants.h"
+#include "matrix.h"
 #include "shader.h"
 #include <assert.h>
 #include "vector.h"
@@ -120,18 +122,10 @@ void renderer_init_buffers(Renderer *renderer,
 
     glEnableVertexAttribArray(POSITION_ATTRIB);
     glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, sizeof(triangle_buffer->data[0]), (GLvoid *)0);
-    // glVertexAttribDivisor(POSITION_ATTRIB, 1);
-    //
-    // glEnableVertexAttribArray(COLOR_ATTRIB);
-    // glVertexAttribPointer(COLOR_ATTRIB, 3, GL_FLOAT, GL_FALSE,
-    //                       sizeof(vertex_buffer->data[0]),
-    //
-    //                       (GLvoid *)(sizeof(GLfloat) * 2));
-    // glVertexAttribDivisor(COLOR_ATTRIB, 1);
-    //
 }
 
 void renderer_draw_triangles(const Renderer *renderer,
+                             const Mat4x4f* model,
                              const TriangleBuffer *triangle_buffer) {
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ebo);
@@ -142,6 +136,9 @@ void renderer_draw_triangles(const Renderer *renderer,
                     (GLvoid *)triangle_buffer->data, GL_STATIC_DRAW);
 
     shader_use(&renderer->shader);
+
+    GLint model_uniform = glGetUniformLocation(renderer->shader.program_id, "model");
+    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, model->data);
 
     glDrawArrays(GL_TRIANGLES, 0, triangle_buffer->count);
     glUseProgram(0);
@@ -154,18 +151,25 @@ int main() {
     Renderer renderer = {0};
 
     TriangleBuffer triangle_buffer = {0};
-    triangle_buffer_push(&triangle_buffer, (Vertex) {-0.5f, -0.5f, 0.0f});
-    triangle_buffer_push(&triangle_buffer, (Vertex) {0.5f, -0.5f, 0.0f});
-    triangle_buffer_push(&triangle_buffer, (Vertex) {0.0f, 0.5f, 0.0f});
+    triangle_buffer_push(&triangle_buffer, vec3f(-0.1f, -0.1f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.1f, -0.1f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.0f, 0.1f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.3f, 0.3f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.3f, -0.3f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.0f, 0.3f, 0.0f));
+
+    Mat4x4f model = mat4x4f_identity();
 
     Buffer indices_buffer = { { 1, 1, 1, 2, 2, 2 }, 6};
 
     renderer_init_buffers(&renderer, &triangle_buffer, &indices_buffer);
 
+    Vec3f rot_axis = vec3f(1.0f, 1.0f, 1.0f);
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderer_draw_triangles(&renderer, &triangle_buffer);
+        mat4x4f_rotate(&model, &rot_axis, PI / 360.0f);
+        renderer_draw_triangles(&renderer, &model, &triangle_buffer);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
