@@ -1,9 +1,9 @@
 
-#include "constants.h"
 #include "matrix.h"
+#include "quat.h"
 #include "shader.h"
-#include <assert.h>
 #include "vector.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,7 +98,7 @@ typedef struct {
     size_t count;
 } TriangleBuffer;
 
-void triangle_buffer_push(TriangleBuffer* buf, Vertex vertex) {
+void triangle_buffer_push(TriangleBuffer *buf, Vertex vertex) {
     assert(buf->count < BUFFER_CAPACITY);
     memcpy(&buf->data[buf->count], &vertex, sizeof(vertex));
     buf->count++;
@@ -114,31 +114,45 @@ void renderer_init_buffers(Renderer *renderer,
 
     glGenBuffers(1, &renderer->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, BUFFER_CAPACITY * sizeof(indices_buffer->data[0]), indices_buffer->data, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                 BUFFER_CAPACITY * sizeof(indices_buffer->data[0]),
+                 indices_buffer->data, GL_STATIC_DRAW);
 
     glGenBuffers(1, &renderer->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, BUFFER_CAPACITY * sizeof(triangle_buffer->data[0]), triangle_buffer->data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 BUFFER_CAPACITY * sizeof(triangle_buffer->data[0]),
+                 triangle_buffer->data, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(POSITION_ATTRIB);
-    glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, sizeof(triangle_buffer->data[0]), (GLvoid *)0);
+    glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(triangle_buffer->data[0]), (GLvoid *)0);
 }
 
-void renderer_draw_triangles(const Renderer *renderer,
-                             const Mat4x4f* model,
+void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f *model,
+                             const Mat4x4f *view, const Mat4x4f *projection,
                              const TriangleBuffer *triangle_buffer) {
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ebo);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
 
     glBufferData(GL_ARRAY_BUFFER,
-                    triangle_buffer->count * sizeof(triangle_buffer->data[0]),
-                    (GLvoid *)triangle_buffer->data, GL_STATIC_DRAW);
+                 triangle_buffer->count * sizeof(triangle_buffer->data[0]),
+                 (GLvoid *)triangle_buffer->data, GL_STATIC_DRAW);
 
     shader_use(&renderer->shader);
 
-    GLint model_uniform = glGetUniformLocation(renderer->shader.program_id, "model");
-    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, model->data);
+    GLint model_uniform =
+        glGetUniformLocation(renderer->shader.program_id, "model");
+    glUniformMatrix4fv(model_uniform, 1, GL_TRUE, model->data);
+
+    GLint view_uniform =
+        glGetUniformLocation(renderer->shader.program_id, "view");
+    glUniformMatrix4fv(view_uniform, 1, GL_TRUE, view->data);
+
+    GLint proj_uniform =
+        glGetUniformLocation(renderer->shader.program_id, "projection");
+    glUniformMatrix4fv(proj_uniform, 1, GL_TRUE, projection->data);
 
     glDrawArrays(GL_TRIANGLES, 0, triangle_buffer->count);
     glUseProgram(0);
@@ -151,25 +165,49 @@ int main() {
     Renderer renderer = {0};
 
     TriangleBuffer triangle_buffer = {0};
-    triangle_buffer_push(&triangle_buffer, vec3f(-0.1f, -0.1f, 0.0f));
-    triangle_buffer_push(&triangle_buffer, vec3f(0.1f, -0.1f, 0.0f));
-    triangle_buffer_push(&triangle_buffer, vec3f(0.0f, 0.1f, 0.0f));
-    triangle_buffer_push(&triangle_buffer, vec3f(0.3f, 0.3f, 0.0f));
-    triangle_buffer_push(&triangle_buffer, vec3f(0.3f, -0.3f, 0.0f));
-    triangle_buffer_push(&triangle_buffer, vec3f(0.0f, 0.3f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(-0.5f, 0.0f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.5f, 0.0f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.0f, 0.5f, 0.0f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.3f, 0.3f, -0.5f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.3f, -0.3f, -0.5f));
+    triangle_buffer_push(&triangle_buffer, vec3f(0.0f, 0.3f, 1.0f));
 
     Mat4x4f model = mat4x4f_identity();
 
-    Buffer indices_buffer = { { 1, 1, 1, 2, 2, 2 }, 6};
+    Mat4x4f view = mat4x4f_identity();
+    Vec3f eye = vec3f(0.0f, 0.0f, 1.0f);
+    Vec3f center = vec3f(0.0f, 0.0f, -100.0f);
+    Vec3f up = vec3f(0.0f, 1.0f, 0.0f);
+    mat4x4f_lookat(&eye, &center, &up, &view);
+
+    Mat4x4f projection = mat4x4f_identity();
+    mat4x4f_projection_scaled_ortho(-90.0f, 90.0f, -90.0f, 90.0f, 0.0f, 500.0f, &projection);
+    //
+    float aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT);
+    mat4x4f_projection_perspective(degrees_to_rad(90.0f), aspect, 0.1f, 500.0f,
+                                   &projection);
+
+    Buffer indices_buffer = {{1, 1, 1, 2, 2, 2}, 6};
 
     renderer_init_buffers(&renderer, &triangle_buffer, &indices_buffer);
 
     Vec3f rot_axis = vec3f(1.0f, 1.0f, 1.0f);
+    vec3f_normalize(&rot_axis);
+    Quat rot = quat(&rot_axis, degrees_to_rad(1.0f));
+    Vec3f translation = vec3f(0.0f, 0.0f, -0.2f);
+    Vec3f scale = vec3f(50.0f, 50.0f, 50.0f);
+    mat4x4f_scale(&model, &scale);
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mat4x4f_translate(&model, &translation);
 
-        mat4x4f_rotate(&model, &rot_axis, PI / 360.0f);
-        renderer_draw_triangles(&renderer, &model, &triangle_buffer);
+        for (size_t i = 0; i < triangle_buffer.count; ++i) {
+            quat_rotate(&rot, &triangle_buffer.data[i],
+            &triangle_buffer.data[i]);
+        }
+        renderer_draw_triangles(&renderer, &model, &view, &projection,
+                                &triangle_buffer);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
