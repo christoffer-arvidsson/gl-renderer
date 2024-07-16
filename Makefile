@@ -5,8 +5,8 @@ SRC_DIR = src/
 TARGET = bin/main
 
 # Get a list of all .cpp files in the src/ directory
-# SRC := $(wildcard $(SRC_DIR)*.c)
-SRC := src/main.c src/shader.c
+SRC := $(wildcard $(SRC_DIR)*.c)
+# SRC := src/main.c src/shader.c
 
 all: $(TARGET)
 

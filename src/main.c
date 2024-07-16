@@ -181,9 +181,9 @@ int main() {
     mat4x4f_lookat(eye, center, up, view);
 
     Mat4x4f projection = MAT4X4F_IDENTITY_INITIALIZER;
-    // mat4x4f_projection_scaled_ortho(-90.0f, 90.0f, -90.0f, 90.0f, 0.0f, 500.0f,
-    //                                 projection);
-    //
+    mat4x4f_projection_scaled_ortho(-90.0f, 90.0f, -90.0f, 90.0f, 0.0f, 500.0f,
+                                    projection);
+
     float aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT);
     mat4x4f_projection_perspective(degrees_to_rad(90.0f), aspect, 0.1f, 500.0f,
                                    projection);
@@ -202,7 +202,6 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mat4x4f_translate(model, translation);
-
 
         for (size_t i = 0; i < triangle_buffer.count; ++i) {
             quat_rotate(rot, triangle_buffer.data[i], triangle_buffer.data[i]);
