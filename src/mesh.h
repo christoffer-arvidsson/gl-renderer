@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <string.h>
 
-#define VERTEX_BUFFER_CAPACITY (19480 * 3)
+#define VERTEX_BUFFER_CAPACITY (22885U * 3U)
 
 typedef struct {
     Vec3f pos;

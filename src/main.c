@@ -28,6 +28,20 @@ typedef enum {
     NORMAL_ATTRIB = 2
 } Attribs;
 
+typedef struct {
+    Vec3f ambient;
+    Vec3f diffuse;
+    Vec3f specular;
+    float shininess;
+} Material;
+
+typedef struct {
+    Vec3f position;
+    Vec3f ambient;
+    Vec3f diffuse;
+    Vec3f specular;
+} Light;
+
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                       GLsizei length, const GLchar *message,
                       const void *userParam) {
@@ -198,6 +212,36 @@ void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
     GLint view_pos_uniform = glGetUniformLocation(renderer->shader.program_id, "view_pos");
     glUniform3f(view_pos_uniform, view_pos[0], view_pos[1], view_pos[2]);
 
+    Material material = {
+        .ambient = {1.0f, 0.5f, 0.31f},
+        .specular = {1.0f, 0.5f, 0.31f},
+        .diffuse = {0.5f, 0.5f, 0.5f},
+        .shininess = 32.0f
+    };
+    Light light = {
+        .position = {25.0f, 25.0f, 25.0f},
+        .ambient = {0.2f, 0.2f, 0.2f},
+        .specular = {0.5f, 0.5f, 0.5f},
+        .diffuse = {1.0f, 1.0f, 1.0f}
+    };
+    GLint mat_ambient_uniform = glGetUniformLocation(renderer->shader.program_id, "material.ambient");
+    glUniform3f(mat_ambient_uniform, material.ambient[0], material.ambient[1], material.ambient[2]);
+    GLint mat_specular_uniform = glGetUniformLocation(renderer->shader.program_id, "material.specular");
+    glUniform3f(mat_specular_uniform, material.ambient[0], material.ambient[1], material.ambient[2]);
+    GLint mat_diffuse_uniform = glGetUniformLocation(renderer->shader.program_id, "material.diffuse");
+    glUniform3f(mat_diffuse_uniform, material.ambient[0], material.ambient[1], material.ambient[2]);
+    GLint mat_shininess_uniform = glGetUniformLocation(renderer->shader.program_id, "material.shininess");
+    glUniform1f(mat_shininess_uniform, material.shininess);
+
+    GLint light_position_uniform = glGetUniformLocation(renderer->shader.program_id, "light.position");
+    glUniform3f(light_position_uniform, light.position[0], light.position[1], light.position[2]);
+    GLint light_ambient_uniform = glGetUniformLocation(renderer->shader.program_id, "light.ambient");
+    glUniform3f(light_ambient_uniform, light.ambient[0], light.ambient[1], light.ambient[2]);
+    GLint light_specular_uniform = glGetUniformLocation(renderer->shader.program_id, "light.specular");
+    glUniform3f(light_specular_uniform, light.ambient[0], light.ambient[1], light.ambient[2]);
+    GLint light_diffuse_uniform = glGetUniformLocation(renderer->shader.program_id, "light.diffuse");
+    glUniform3f(light_diffuse_uniform, light.ambient[0], light.ambient[1], light.ambient[2]);
+
     glDrawArrays(GL_TRIANGLES, 0, vertex_buffer->count);
     glUseProgram(0);
     glBindVertexArray(0);
@@ -220,17 +264,17 @@ int main() {
     size_t num_triangles = 0;
     Triangle* triangles = load_teapot_vertices("assets/meshes/teapot.txt", &num_triangles);
     for (size_t i = 0U; i < num_triangles; ++i) {
-        triangles[i].v1.color[0] = 0.0f;
-        triangles[i].v2.color[0] = 0.0f;
-        triangles[i].v3.color[0] = 0.0f;
+        triangles[i].v1.color[0] = 1.0f;
+        triangles[i].v2.color[0] = 1.0f;
+        triangles[i].v3.color[0] = 1.0f;
 
-        triangles[i].v1.color[1] = 0.5f;
-        triangles[i].v2.color[1] = 0.5f;
-        triangles[i].v3.color[1] = 0.5f;
+        triangles[i].v1.color[1] = 1.0f;
+        triangles[i].v2.color[1] = 1.0f;
+        triangles[i].v3.color[1] = 1.0f;
 
-        triangles[i].v1.color[2] = 0.5f;
-        triangles[i].v2.color[2] = 0.5f;
-        triangles[i].v3.color[2] = 0.5f;
+        triangles[i].v1.color[2] = 1.0f;
+        triangles[i].v2.color[2] = 1.0f;
+        triangles[i].v3.color[2] = 1.0f;
         vertex_buffer_push(&mesh.vertices, &triangles[i].v1);
         vertex_buffer_push(&mesh.vertices, &triangles[i].v2);
         vertex_buffer_push(&mesh.vertices, &triangles[i].v3);
