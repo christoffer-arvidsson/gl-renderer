@@ -1,12 +1,20 @@
+#include "matrix.h"
 #include "vector.h"
 #include "camera.h"
 #include "trig.h"
 #include <math.h>
+#include <stdio.h>
 
-#define YAW 45.0f
-#define PITCH 45.0f
+#define YAW 0.0f
+#define PITCH 0.0f
 #define SPEED 2.5f
 #define SENSITIVITY 0.1f
+
+void camera_get_view_matrix(EulerCamera* camera, Mat4x4f dest) {
+    Vec3f dir = {0};
+    vec3f_add(camera->position, camera->front, dir);
+    mat4x4f_lookat(camera->position, dir, camera->up, dest);
+}
 
 void camera_update_vectors(EulerCamera *camera) {
     float yaw = degrees_to_rad(camera->yaw);
@@ -31,7 +39,7 @@ void camera_update_vectors(EulerCamera *camera) {
     vec3f_normalize(camera->up);
 }
 
-EulerCamera create_euler_camera() {
+EulerCamera camera_create_euler(void) {
     EulerCamera camera = {0};
     camera.world_up[1] = 1.0f;
 
@@ -43,4 +51,28 @@ EulerCamera create_euler_camera() {
     camera_update_vectors(&camera);
 
     return camera;
+}
+
+void camera_move(EulerCamera *camera, enum CameraDir dir) {
+    switch (dir) {
+    case FORWARD: {
+        vec3f_add(camera->position, camera->front, camera->position);
+        break;
+    }
+    case BACKWARD: {
+        vec3f_sub(camera->position, camera->front, camera->position);
+        break;
+    }
+    case RIGHT: {
+        vec3f_sub(camera->position, camera->right, camera->position);
+        break;
+    }
+    case LEFT: {
+        vec3f_add(camera->position, camera->right, camera->position);
+        break;
+    }
+default:
+        break;
+    }
+
 }
