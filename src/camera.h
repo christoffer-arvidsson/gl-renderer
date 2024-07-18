@@ -12,24 +12,29 @@ enum CameraDir {
 };
 
 typedef struct {
+    float fov_half_degrees;
+    float z_near;
+    float z_far;
+
     Vec3f position;
     Vec3f front;
     Vec3f up;
     Vec3f right;
-    Vec3f world_up;
     float yaw;
     float pitch;
     float speed;
     float sensitivity;
+    float aspect;
 
     float last_cursor_position_x;
     float last_cursor_position_y;
-} EulerCamera;
 
-void camera_get_view_matrix(EulerCamera* camera, Mat4x4f dest);
-void camera_update_vectors(EulerCamera *camera);
-EulerCamera camera_create_euler(void);
+    Mat4x4f view;
+    Mat4x4f projection;
+} PerspectiveCamera;
 
-void camera_move(EulerCamera *camera, enum CameraDir dir);
+void camera_update(PerspectiveCamera* camera);
+
+void camera_move(PerspectiveCamera *camera, enum CameraDir dir);
 
 #endif // CAMERA_H_

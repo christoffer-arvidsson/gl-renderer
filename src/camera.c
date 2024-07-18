@@ -1,22 +1,27 @@
-#include "matrix.h"
-#include "vector.h"
 #include "camera.h"
+#include "matrix.h"
 #include "trig.h"
+#include "vector.h"
 #include <math.h>
-#include <stdio.h>
 
 #define YAW 0.0f
 #define PITCH 0.0f
 #define SPEED 2.5f
 #define SENSITIVITY 0.1f
 
-void camera_get_view_matrix(EulerCamera* camera, Mat4x4f dest) {
+void camera_update_view_matrix(PerspectiveCamera *camera, Mat4x4f dest) {
     Vec3f dir = {0};
     vec3f_add(camera->position, camera->front, dir);
     mat4x4f_lookat(camera->position, dir, camera->up, dest);
 }
 
-void camera_update_vectors(EulerCamera *camera) {
+void camera_update_projection_matrix(PerspectiveCamera *camera, Mat4x4f dest) {
+    mat4x4f_projection_perspective(degrees_to_rad(camera->fov_half_degrees),
+                                   camera->aspect, camera->z_near, camera->z_far,
+                                   dest);
+}
+
+void camera_update_vectors(PerspectiveCamera *camera) {
     float yaw = degrees_to_rad(camera->yaw);
     float pitch = degrees_to_rad(camera->pitch);
 
@@ -39,40 +44,31 @@ void camera_update_vectors(EulerCamera *camera) {
     vec3f_normalize(camera->up);
 }
 
-EulerCamera camera_create_euler(void) {
-    EulerCamera camera = {0};
-    camera.world_up[1] = 1.0f;
-
-    camera.yaw = YAW;
-    camera.pitch = PITCH;
-    camera.speed = SPEED;
-    camera.sensitivity = SENSITIVITY;
-
-    camera_update_vectors(&camera);
-
-    return camera;
+void camera_update(PerspectiveCamera *camera) {
+    camera_update_vectors(camera);
+    camera_update_view_matrix(camera, camera->view);
+    camera_update_projection_matrix(camera, camera->projection);
 }
 
-void camera_move(EulerCamera *camera, enum CameraDir dir) {
+void camera_move(PerspectiveCamera *camera, enum CameraDir dir) {
     switch (dir) {
-    case FORWARD: {
-        vec3f_add(camera->position, camera->front, camera->position);
-        break;
+        case FORWARD: {
+            vec3f_add(camera->position, camera->front, camera->position);
+            break;
+        }
+        case BACKWARD: {
+            vec3f_sub(camera->position, camera->front, camera->position);
+            break;
+        }
+        case RIGHT: {
+            vec3f_sub(camera->position, camera->right, camera->position);
+            break;
+        }
+        case LEFT: {
+            vec3f_add(camera->position, camera->right, camera->position);
+            break;
+        }
+        default:
+            break;
     }
-    case BACKWARD: {
-        vec3f_sub(camera->position, camera->front, camera->position);
-        break;
-    }
-    case RIGHT: {
-        vec3f_sub(camera->position, camera->right, camera->position);
-        break;
-    }
-    case LEFT: {
-        vec3f_add(camera->position, camera->right, camera->position);
-        break;
-    }
-default:
-        break;
-    }
-
 }

@@ -2,8 +2,8 @@
 #include "camera.h"
 #include "matrix.h"
 #include "quat.h"
-#include "stdbool.h"
 #include "shader.h"
+#include "stdbool.h"
 #include "vector.h"
 #include <assert.h>
 #include <stdio.h>
@@ -33,8 +33,9 @@ void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
             message);
 }
 
-void camera_mouse_callback(GLFWwindow* window, double x_offset, double y_offset) {
-    EulerCamera* camera = glfwGetWindowUserPointer(window);
+void camera_mouse_callback(GLFWwindow *window, double x_offset,
+                           double y_offset) {
+    PerspectiveCamera *camera = glfwGetWindowUserPointer(window);
     float x_off = camera->last_cursor_position_x - (float)x_offset;
     float y_off = (float)y_offset - camera->last_cursor_position_y;
     camera->last_cursor_position_x = x_offset;
@@ -49,25 +50,29 @@ void camera_mouse_callback(GLFWwindow* window, double x_offset, double y_offset)
     if (camera->pitch < -89.0f)
         camera->pitch = -89.0f;
 
-    camera_update_vectors(camera);
+    camera_update(camera);
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    EulerCamera* camera = glfwGetWindowUserPointer(window);
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
+    PerspectiveCamera *camera = glfwGetWindowUserPointer(window);
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
-    } else if ((key == GLFW_KEY_LEFT || key == GLFW_KEY_W) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_LEFT || key == GLFW_KEY_W) &&
+        (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, LEFT);
-    } else if ((key == GLFW_KEY_RIGHT || key == GLFW_KEY_B)  && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_RIGHT || key == GLFW_KEY_B) &&
+        (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, RIGHT);
-    } else if ((key == GLFW_KEY_UP || key == GLFW_KEY_F) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_UP || key == GLFW_KEY_F) &&
+        (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, FORWARD);
-    } else if ((key == GLFW_KEY_DOWN || key == GLFW_KEY_P) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_DOWN || key == GLFW_KEY_P) &&
+        (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, BACKWARD);
     }
 }
-
 
 GLFWwindow *create_window() {
     glfwInit();
@@ -183,15 +188,15 @@ void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
 
     GLint model_uniform =
         glGetUniformLocation(renderer->shader.program_id, "model");
-    glUniformMatrix4fv(model_uniform, 1, GL_TRUE, (GLfloat*) model);
+    glUniformMatrix4fv(model_uniform, 1, GL_TRUE, (GLfloat *)model);
 
     GLint view_uniform =
         glGetUniformLocation(renderer->shader.program_id, "view");
-    glUniformMatrix4fv(view_uniform, 1, GL_TRUE, (GLfloat*) view);
+    glUniformMatrix4fv(view_uniform, 1, GL_TRUE, (GLfloat *)view);
 
     GLint proj_uniform =
         glGetUniformLocation(renderer->shader.program_id, "projection");
-    glUniformMatrix4fv(proj_uniform, 1, GL_TRUE, (GLfloat*) projection);
+    glUniformMatrix4fv(proj_uniform, 1, GL_TRUE, (GLfloat *)projection);
 
     glDrawArrays(GL_TRIANGLES, 0, triangle_buffer->count);
     glUseProgram(0);
@@ -213,34 +218,35 @@ int main() {
     Buffer indices_buffer = {{1, 1, 1, 2, 2, 2}, 3};
     renderer_init_buffers(&renderer, &triangle_buffer, &indices_buffer);
 
-    EulerCamera camera = camera_create_euler();
+    PerspectiveCamera camera = {.position = {50.0f, 50.0f, 50.0f},
+        .yaw = 45.0f,
+        .pitch = 45.0f,
+        .speed = 2.5f,
+        .sensitivity = 0.1f,
+        .z_near = 0.1f,
+        .z_far = 500.0f,
+        .fov_half_degrees = 45.0f,
+        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT)};
+    
     glfwSetWindowUserPointer(window, &camera);
 
-    float aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT);
     Mat4x4f model = MAT4X4F_IDENTITY_INITIALIZER;
-    Mat4x4f view = MAT4X4F_ZERO_INITIALIZER;
-    Mat4x4f projection = MAT4X4F_IDENTITY_INITIALIZER;
-
-    // mat4x4f_projection_scaled_ortho(-90.0f, 90.0f, -90.0f, 90.0f, 0.0f, 100.0f,
-    //                                 projection);
-    mat4x4f_projection_perspective(degrees_to_rad(45.0f), aspect, 0.1f, 500.0f,
-                                   projection);
 
     Vec3f rot_axis = {0.0f, 0.0f, 1.0f};
     vec3f_normalize(rot_axis);
-    Quat rot = {0}; quat(rot_axis, degrees_to_rad(1.0f), rot);
+    Quat rot = {0};
+    quat(rot_axis, degrees_to_rad(1.0f), rot);
     Vec3f scale = {10.0f, 10.0f, 10.0f};
     mat4x4f_scale(model, scale);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera_get_view_matrix(&camera, view);
-
         for (size_t i = 0; i < triangle_buffer.count; ++i) {
             quat_rotate(rot, triangle_buffer.data[i], triangle_buffer.data[i]);
         }
-        renderer_draw_triangles(&renderer, model, view, projection,
+        camera_update(&camera);
+        renderer_draw_triangles(&renderer, model, camera.view, camera.projection,
                                 &triangle_buffer);
 
         glfwSwapBuffers(window);
