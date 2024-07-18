@@ -30,10 +30,14 @@ Triangle* load_teapot_vertices(const char *filename, size_t *num_triangles) {
     while (fgetc(file) != '\n');
 
     for (int i = 0; i < *num_triangles; i++) {
-        if (fscanf(file, "%f %f %f\n%f %f %f\n%f %f %f",
+        if (fscanf(file, "%f %f %f\n%f %f %f\n%f %f %f\n%f %f %f\n%f %f %f\n%f %f %f",
                    &triangles[i].v1.pos[0], &triangles[i].v1.pos[1], &triangles[i].v1.pos[2],
+                   &triangles[i].v1.normal[0], &triangles[i].v1.normal[1], &triangles[i].v1.normal[2],
                    &triangles[i].v2.pos[0], &triangles[i].v2.pos[1], &triangles[i].v2.pos[2],
-                   &triangles[i].v3.pos[0], &triangles[i].v3.pos[1], &triangles[i].v3.pos[2]) != 9) {
+                   &triangles[i].v2.normal[0], &triangles[i].v2.normal[1], &triangles[i].v2.normal[2],
+                   &triangles[i].v3.pos[0], &triangles[i].v3.pos[1], &triangles[i].v3.pos[2],
+                   &triangles[i].v3.normal[0], &triangles[i].v3.normal[1], &triangles[i].v3.normal[2]
+                   ) != 3U * 6U) {
             fprintf(stderr, "Error reading triangle data at triangle %d\n", i);
             free(triangles);
             fclose(file);

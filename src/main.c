@@ -5,6 +5,7 @@
 #include "quat.h"
 #include "shader.h"
 #include "stdbool.h"
+#include "stddef.h"
 #include "vector.h"
 #include <assert.h>
 #include <stdio.h>
@@ -18,8 +19,14 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define SCREEN_WIDTH 800U
-#define SCREEN_HEIGHT 450U
+#define SCREEN_WIDTH 1920U
+#define SCREEN_HEIGHT 1080U
+
+typedef enum {
+    POSITION_ATTRIB = 0,
+    COLOR_ATTRIB = 1,
+    NORMAL_ATTRIB = 2
+} Attribs;
 
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                       GLsizei length, const GLchar *message,
@@ -46,10 +53,7 @@ void camera_mouse_callback(GLFWwindow *window, double x_offset,
     camera->yaw += x_off;
     camera->pitch += y_off;
 
-    if (camera->pitch > 89.0f)
-        camera->pitch = 89.0f;
-    if (camera->pitch < -89.0f)
-        camera->pitch = -89.0f;
+    camera->pitch = fmax(fmin(camera->pitch, 89.0f), -89.0f);
 
     camera_update(camera);
 }
@@ -105,14 +109,14 @@ GLFWwindow *create_window() {
         fprintf(stderr, "ERROR: Support for EXT_draw_instanced is required!\n");
         exit(1);
     }
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(message_callback, 0);
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, camera_mouse_callback);
@@ -120,11 +124,6 @@ GLFWwindow *create_window() {
 
     return window;
 }
-
-typedef enum {
-    POSITION_ATTRIB = 0,
-    COLOR_ATTRIB,
-} Attribs;
 
 typedef struct {
     GLfloat data[VERTEX_BUFFER_CAPACITY];
@@ -158,18 +157,22 @@ void renderer_init_buffers(Renderer *renderer,
                  VERTEX_BUFFER_CAPACITY * sizeof(vertex_buffer->data[0]),
                  vertex_buffer->data, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(POSITION_ATTRIB);
     glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertex_buffer->data[0]), (GLvoid *)0);
+                          sizeof(vertex_buffer->data[0]), (GLvoid *)offsetof(Vertex, pos));
+    glEnableVertexAttribArray(POSITION_ATTRIB);
 
-    glEnableVertexAttribArray(COLOR_ATTRIB);
     glVertexAttribPointer(COLOR_ATTRIB, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertex_buffer->data[0]), (GLvoid *)(3U * sizeof(GLfloat)));
+                          sizeof(vertex_buffer->data[0]), (GLvoid *)offsetof(Vertex, color));
+    glEnableVertexAttribArray(COLOR_ATTRIB);
+
+    glVertexAttribPointer(NORMAL_ATTRIB, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(vertex_buffer->data[0]), (GLvoid *)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(NORMAL_ATTRIB);
 }
 
 void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
                              const Mat4x4f view, const Mat4x4f projection,
-                             const VertexBuffer *vertex_buffer) {
+                             const Vec3f view_pos, const VertexBuffer *vertex_buffer) {
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ebo);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
@@ -191,6 +194,9 @@ void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
     GLint proj_uniform =
         glGetUniformLocation(renderer->shader.program_id, "projection");
     glUniformMatrix4fv(proj_uniform, 1, GL_TRUE, (GLfloat *)projection);
+
+    GLint view_pos_uniform = glGetUniformLocation(renderer->shader.program_id, "view_pos");
+    glUniform3f(view_pos_uniform, view_pos[0], view_pos[1], view_pos[2]);
 
     glDrawArrays(GL_TRIANGLES, 0, vertex_buffer->count);
     glUseProgram(0);
@@ -214,18 +220,29 @@ int main() {
     size_t num_triangles = 0;
     Triangle* triangles = load_teapot_vertices("assets/meshes/teapot.txt", &num_triangles);
     for (size_t i = 0U; i < num_triangles; ++i) {
-        vec3f_print(triangles[i].v1.pos);
-        vec3f_print(triangles[i].v2.pos);
-        vec3f_print(triangles[i].v3.pos);
+        triangles[i].v1.color[0] = 0.0f;
+        triangles[i].v2.color[0] = 0.0f;
+        triangles[i].v3.color[0] = 0.0f;
+
+        triangles[i].v1.color[1] = 0.5f;
+        triangles[i].v2.color[1] = 0.5f;
+        triangles[i].v3.color[1] = 0.5f;
+
+        triangles[i].v1.color[2] = 0.5f;
+        triangles[i].v2.color[2] = 0.5f;
+        triangles[i].v3.color[2] = 0.5f;
         vertex_buffer_push(&mesh.vertices, &triangles[i].v1);
         vertex_buffer_push(&mesh.vertices, &triangles[i].v2);
         vertex_buffer_push(&mesh.vertices, &triangles[i].v3);
-        printf("\n");
     }
     Buffer indices_buffer = {{1, 1, 1, 1, 1, 1}, 6};
     renderer_init_buffers(&renderer, &mesh.vertices, &indices_buffer);
 
-    PerspectiveCamera camera = {.position = {50.0f, 50.0f, 50.0f},
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+
+    PerspectiveCamera camera = {
+        .position = {50.0f, 50.0f, 50.0f},
         .yaw = 45.0f,
         .pitch = 30.0f,
         .speed = 2.5f,
@@ -233,16 +250,19 @@ int main() {
         .z_near = 0.1f,
         .z_far = 500.0f,
         .fov_half_degrees = 45.0f,
-        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT)};
+        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
+        .last_cursor_position_x = (float)xpos,
+        .last_cursor_position_y = (float)ypos
+    };
     
     glfwSetWindowUserPointer(window, &camera);
 
     Mat4x4f model = MAT4X4F_IDENTITY_INITIALIZER;
 
-    Vec3f rot_axis = {0.0f, 0.0f, 1.0f};
+    Vec3f rot_axis = {0.0f, 1.0f, 1.0f};
     vec3f_normalize(rot_axis);
     Quat rot = {0};
-    quat(rot_axis, degrees_to_rad(1.0f), rot);
+    quat(rot_axis, degrees_to_rad(0.5f), rot);
     Vec3f scale = {10.0f, 10.0f, 10.0f};
     mat4x4f_scale(model, scale);
     Vec3f trans = {0.1f, 0.0f, 0.0f};
@@ -250,13 +270,11 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // mat4x4f_translate(model, trans); 
-
         // for (size_t i = 0; i < mesh.vertices.count; ++i) {
         //     quat_rotate(rot, mesh.vertices.data[i].pos, mesh.vertices.data[i].pos);
         // }
         camera_update(&camera);
-        renderer_draw_triangles(&renderer, model, camera.view, camera.projection,
+        renderer_draw_triangles(&renderer, model, camera.view, camera.projection, camera.position,
                                 &mesh.vertices);
 
         glfwSwapBuffers(window);
