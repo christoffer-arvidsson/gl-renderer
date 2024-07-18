@@ -1,7 +1,7 @@
 #version 330 core
-in vec3 pos_out;
-out vec4 color;
+in vec3 color;
+out vec4 color_out;
 
 void main() {
-    color = vec4(1.0f, 1.0f, pos_out.z / 10.0f, 1.0f);
+    color_out = vec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
