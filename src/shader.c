@@ -1,4 +1,5 @@
 #include "shader.h"
+#include "matrix.h"
 #include <GL/glew.h>
 
 #include <stdio.h>
@@ -115,4 +116,19 @@ void shader_delete(Shader *shader) {
 
 void shader_use(const Shader *shader) {
     glUseProgram(shader->program_id);
+}
+
+void shader_set_mat4x4f(const Shader* shader, char* name, const Mat4x4f mat) {
+    GLint uniform = glGetUniformLocation(shader->program_id, name);
+    glUniformMatrix4fv(uniform, 1, GL_TRUE, (GLfloat *)mat);
+}
+
+void shader_set_vec3f(const Shader* shader, char* name, const Vec3f v) {
+    GLint uniform = glGetUniformLocation(shader->program_id, name);
+    glUniform3f(uniform, v[0], v[1], v[2]);
+}
+
+void shader_set_float(const Shader* shader, char* name, float v) {
+    GLint uniform = glGetUniformLocation(shader->program_id, name);
+    glUniform1f(uniform, v);
 }

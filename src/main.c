@@ -197,20 +197,10 @@ void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
 
     shader_use(&renderer->shader);
 
-    GLint model_uniform =
-        glGetUniformLocation(renderer->shader.program_id, "model");
-    glUniformMatrix4fv(model_uniform, 1, GL_TRUE, (GLfloat *)model);
-
-    GLint view_uniform =
-        glGetUniformLocation(renderer->shader.program_id, "view");
-    glUniformMatrix4fv(view_uniform, 1, GL_TRUE, (GLfloat *)view);
-
-    GLint proj_uniform =
-        glGetUniformLocation(renderer->shader.program_id, "projection");
-    glUniformMatrix4fv(proj_uniform, 1, GL_TRUE, (GLfloat *)projection);
-
-    GLint view_pos_uniform = glGetUniformLocation(renderer->shader.program_id, "view_pos");
-    glUniform3f(view_pos_uniform, view_pos[0], view_pos[1], view_pos[2]);
+    shader_set_mat4x4f(&renderer->shader, "model", model);
+    shader_set_mat4x4f(&renderer->shader, "view", view);
+    shader_set_mat4x4f(&renderer->shader, "projection", projection);
+    shader_set_vec3f(&renderer->shader, "view_pos", view_pos);
 
     Material material = {
         .ambient = {1.0f, 0.5f, 0.31f},
@@ -224,23 +214,16 @@ void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
         .specular = {0.5f, 0.5f, 0.5f},
         .diffuse = {1.0f, 1.0f, 1.0f}
     };
-    GLint mat_ambient_uniform = glGetUniformLocation(renderer->shader.program_id, "material.ambient");
-    glUniform3f(mat_ambient_uniform, material.ambient[0], material.ambient[1], material.ambient[2]);
-    GLint mat_specular_uniform = glGetUniformLocation(renderer->shader.program_id, "material.specular");
-    glUniform3f(mat_specular_uniform, material.ambient[0], material.ambient[1], material.ambient[2]);
-    GLint mat_diffuse_uniform = glGetUniformLocation(renderer->shader.program_id, "material.diffuse");
-    glUniform3f(mat_diffuse_uniform, material.ambient[0], material.ambient[1], material.ambient[2]);
-    GLint mat_shininess_uniform = glGetUniformLocation(renderer->shader.program_id, "material.shininess");
-    glUniform1f(mat_shininess_uniform, material.shininess);
 
-    GLint light_position_uniform = glGetUniformLocation(renderer->shader.program_id, "light.position");
-    glUniform3f(light_position_uniform, light.position[0], light.position[1], light.position[2]);
-    GLint light_ambient_uniform = glGetUniformLocation(renderer->shader.program_id, "light.ambient");
-    glUniform3f(light_ambient_uniform, light.ambient[0], light.ambient[1], light.ambient[2]);
-    GLint light_specular_uniform = glGetUniformLocation(renderer->shader.program_id, "light.specular");
-    glUniform3f(light_specular_uniform, light.ambient[0], light.ambient[1], light.ambient[2]);
-    GLint light_diffuse_uniform = glGetUniformLocation(renderer->shader.program_id, "light.diffuse");
-    glUniform3f(light_diffuse_uniform, light.ambient[0], light.ambient[1], light.ambient[2]);
+    shader_set_vec3f(&renderer->shader, "material.ambient", material.ambient);
+    shader_set_vec3f(&renderer->shader, "material.specular", material.specular);
+    shader_set_vec3f(&renderer->shader, "material.diffuse", material.diffuse);
+    shader_set_float(&renderer->shader, "material.shininess", material.shininess);
+
+    shader_set_vec3f(&renderer->shader, "light.ambient", light.ambient);
+    shader_set_vec3f(&renderer->shader, "light.specular", light.specular);
+    shader_set_vec3f(&renderer->shader, "light.diffuse", light.diffuse);
+    shader_set_vec3f(&renderer->shader, "light.position", light.position);
 
     glDrawArrays(GL_TRIANGLES, 0, vertex_buffer->count);
     glUseProgram(0);
