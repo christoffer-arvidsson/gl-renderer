@@ -57,13 +57,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
-    } else if ((key == GLFW_KEY_LEFT || key == GLFW_KEY_J) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_LEFT || key == GLFW_KEY_W) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, LEFT);
-    } else if ((key == GLFW_KEY_RIGHT || key == GLFW_KEY_Y)  && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_RIGHT || key == GLFW_KEY_B)  && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, RIGHT);
-    } else if ((key == GLFW_KEY_UP || key == GLFW_KEY_U) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_UP || key == GLFW_KEY_F) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, FORWARD);
-    } else if ((key == GLFW_KEY_DOWN || key == GLFW_KEY_L) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+    } else if ((key == GLFW_KEY_DOWN || key == GLFW_KEY_P) && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
         camera_move(camera, BACKWARD);
     }
 }
