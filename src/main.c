@@ -22,26 +22,6 @@
 #define SCREEN_WIDTH 1920U
 #define SCREEN_HEIGHT 1080U
 
-typedef enum {
-    POSITION_ATTRIB = 0,
-    COLOR_ATTRIB = 1,
-    NORMAL_ATTRIB = 2
-} Attribs;
-
-typedef struct {
-    Vec3f ambient;
-    Vec3f diffuse;
-    Vec3f specular;
-    float shininess;
-} Material;
-
-typedef struct {
-    Vec3f position;
-    Vec3f ambient;
-    Vec3f diffuse;
-    Vec3f specular;
-} Light;
-
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                       GLsizei length, const GLchar *message,
                       const void *userParam) {
@@ -151,56 +131,10 @@ typedef struct {
     Shader shader;
 } Renderer;
 
-void renderer_init_buffers(Renderer *renderer,
-                           const VertexBuffer *vertex_buffer,
-                           const Buffer *indices_buffer) {
-    shader_create("assets/shaders/main.vert", "assets/shaders/main.frag",
-                  &renderer->shader);
-    glGenVertexArrays(1, &renderer->vao);
-    glBindVertexArray(renderer->vao);
+int main() {
+    GLFWwindow *window = create_window();
 
-    glGenBuffers(1, &renderer->ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 VERTEX_BUFFER_CAPACITY * sizeof(indices_buffer->data[0]),
-                 indices_buffer->data, GL_STATIC_DRAW);
-
-    glGenBuffers(1, &renderer->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER,
-                 VERTEX_BUFFER_CAPACITY * sizeof(vertex_buffer->data[0]),
-                 vertex_buffer->data, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertex_buffer->data[0]), (GLvoid *)offsetof(Vertex, pos));
-    glEnableVertexAttribArray(POSITION_ATTRIB);
-
-    glVertexAttribPointer(COLOR_ATTRIB, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertex_buffer->data[0]), (GLvoid *)offsetof(Vertex, color));
-    glEnableVertexAttribArray(COLOR_ATTRIB);
-
-    glVertexAttribPointer(NORMAL_ATTRIB, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(vertex_buffer->data[0]), (GLvoid *)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(NORMAL_ATTRIB);
-}
-
-void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
-                             const Mat4x4f view, const Mat4x4f projection,
-                             const Vec3f view_pos, const VertexBuffer *vertex_buffer) {
-    glBindVertexArray(renderer->vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer->ebo);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-
-    glBufferData(GL_ARRAY_BUFFER,
-                 vertex_buffer->count * sizeof(vertex_buffer->data[0]),
-                 (GLvoid *)vertex_buffer->data, GL_STATIC_DRAW);
-
-    shader_use(&renderer->shader);
-
-    shader_set_mat4x4f(&renderer->shader, "model", model);
-    shader_set_mat4x4f(&renderer->shader, "view", view);
-    shader_set_mat4x4f(&renderer->shader, "projection", projection);
-    shader_set_vec3f(&renderer->shader, "view_pos", view_pos);
+    Renderer renderer = {0};
 
     Material material = {
         .ambient = {1.0f, 0.5f, 0.31f},
@@ -214,34 +148,6 @@ void renderer_draw_triangles(const Renderer *renderer, const Mat4x4f model,
         .specular = {0.5f, 0.5f, 0.5f},
         .diffuse = {1.0f, 1.0f, 1.0f}
     };
-
-    shader_set_vec3f(&renderer->shader, "material.ambient", material.ambient);
-    shader_set_vec3f(&renderer->shader, "material.specular", material.specular);
-    shader_set_vec3f(&renderer->shader, "material.diffuse", material.diffuse);
-    shader_set_float(&renderer->shader, "material.shininess", material.shininess);
-
-    shader_set_vec3f(&renderer->shader, "light.ambient", light.ambient);
-    shader_set_vec3f(&renderer->shader, "light.specular", light.specular);
-    shader_set_vec3f(&renderer->shader, "light.diffuse", light.diffuse);
-    shader_set_vec3f(&renderer->shader, "light.position", light.position);
-
-    glDrawArrays(GL_TRIANGLES, 0, vertex_buffer->count);
-    glUseProgram(0);
-    glBindVertexArray(0);
-}
-
-Vertex basic_vertex(float x, float y, float z) {
-    return (Vertex) {
-        .pos = {x, y, z},
-        .color = {1.0f, 1.0f, 1.0f}
-    };
-}
-
-int main() {
-    GLFWwindow *window = create_window();
-
-    Renderer renderer = {0};
-
     Mesh mesh = {0};
 
     size_t num_triangles = 0;
@@ -262,8 +168,13 @@ int main() {
         vertex_buffer_push(&mesh.vertices, &triangles[i].v2);
         vertex_buffer_push(&mesh.vertices, &triangles[i].v3);
     }
-    Buffer indices_buffer = {{1, 1, 1, 1, 1, 1}, 6};
-    renderer_init_buffers(&renderer, &mesh.vertices, &indices_buffer);
+    MeshRenderer mesh_renderer = {
+        .material = material,
+        .light = light,
+        .mesh = mesh
+    };
+
+    mesh_renderer_init(&mesh_renderer);
 
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
@@ -298,11 +209,10 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // for (size_t i = 0; i < mesh.vertices.count; ++i) {
-        //     quat_rotate(rot, mesh.vertices.data[i].pos, mesh.vertices.data[i].pos);
+        //     quat_rotate(rot, mesh_renderer.mesh.vertices.data[i].pos, mesh_renderer.mesh.vertices.data[i].pos);
         // }
         camera_update(&camera);
-        renderer_draw_triangles(&renderer, model, camera.view, camera.projection, camera.position,
-                                &mesh.vertices);
+        mesh_renderer_draw(&mesh_renderer, &camera, model);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
