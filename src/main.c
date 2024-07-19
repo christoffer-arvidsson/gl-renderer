@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utah.h"
+#include "teapot.h"
 
 #define GLEW_STATIC
 #include <GL/gl.h>
@@ -148,31 +148,12 @@ int main() {
         .specular = {0.5f, 0.5f, 0.5f},
         .diffuse = {1.0f, 1.0f, 1.0f}
     };
-    Mesh mesh = {0};
 
-    size_t num_triangles = 0;
-    Triangle* triangles = load_teapot_vertices("assets/meshes/teapot.txt", &num_triangles);
-    for (size_t i = 0U; i < num_triangles; ++i) {
-        triangles[i].v1.color[0] = 1.0f;
-        triangles[i].v2.color[0] = 1.0f;
-        triangles[i].v3.color[0] = 1.0f;
-
-        triangles[i].v1.color[1] = 1.0f;
-        triangles[i].v2.color[1] = 1.0f;
-        triangles[i].v3.color[1] = 1.0f;
-
-        triangles[i].v1.color[2] = 1.0f;
-        triangles[i].v2.color[2] = 1.0f;
-        triangles[i].v3.color[2] = 1.0f;
-        vertex_buffer_push(&mesh.vertices, &triangles[i].v1);
-        vertex_buffer_push(&mesh.vertices, &triangles[i].v2);
-        vertex_buffer_push(&mesh.vertices, &triangles[i].v3);
-    }
     MeshRenderer mesh_renderer = {
         .material = material,
         .light = light,
-        .mesh = mesh
     };
+    load_teapot_vertices("assets/meshes/teapot_large.txt", &mesh_renderer.mesh);
 
     mesh_renderer_init(&mesh_renderer);
 

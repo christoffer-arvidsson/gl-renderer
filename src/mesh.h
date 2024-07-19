@@ -10,7 +10,7 @@
 
 #include <GL/gl.h>
 
-#define VERTEX_BUFFER_CAPACITY (22885U * 3U)
+#define VERTEX_BUFFER_CAPACITY (145620U * 3U)
 
 typedef enum {
     POSITION_ATTRIB = 0,
