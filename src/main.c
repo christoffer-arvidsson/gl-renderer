@@ -1,5 +1,6 @@
 
 #include "camera.h"
+#include "line.h"
 #include "matrix.h"
 #include "mesh.h"
 #include "quat.h"
@@ -134,8 +135,6 @@ typedef struct {
 int main() {
     GLFWwindow *window = create_window();
 
-    Renderer renderer = {0};
-
     Material material = {
         .ambient = {1.0f, 0.5f, 0.31f},
         .specular = {1.0f, 0.5f, 0.31f},
@@ -154,8 +153,10 @@ int main() {
         .light = light,
     };
     load_teapot_vertices("assets/meshes/teapot_large.txt", &mesh_renderer.mesh);
-
     mesh_renderer_init(&mesh_renderer);
+
+    LinesRenderer axis_renderer = {0};
+    lines_renderer_init(&axis_renderer);
 
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
@@ -173,7 +174,7 @@ int main() {
         .last_cursor_position_x = (float)xpos,
         .last_cursor_position_y = (float)ypos
     };
-    
+
     glfwSetWindowUserPointer(window, &camera);
 
     Mat4x4f model = MAT4X4F_IDENTITY_INITIALIZER;
@@ -194,6 +195,8 @@ int main() {
         // }
         camera_update(&camera);
         mesh_renderer_draw(&mesh_renderer, &camera, model);
+        lines_renderer_draw(&axis_renderer, &camera);
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
