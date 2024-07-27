@@ -1,6 +1,7 @@
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
+#include "quat.h"
 #include "vector.h"
 #include "trig.h"
 #include <stdio.h>
@@ -34,6 +35,7 @@ void mat4x4f_mul(const Mat4x4f m1, const Mat4x4f m2, Mat4x4f d);
 void mat4x4f_translate(Mat4x4f m, const Vec3f t);
 
 void mat4x4f_rotate(Mat4x4f m, const Vec3f axis, float rad);
+void mat4x4f_rotate_q(Mat4x4f m, const Quat rot);
 
 void mat4x4f_projection_scaled_ortho(float left, float right, float bottom,
                                      float top, float z_near, float z_far,

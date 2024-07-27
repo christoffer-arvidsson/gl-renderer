@@ -7,11 +7,13 @@
 #include "shader.h"
 #include "stdbool.h"
 #include "stddef.h"
+#include "trig.h"
 #include "vector.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "teapot.h"
 
@@ -48,14 +50,15 @@ void camera_mouse_callback(GLFWwindow *window, double x_offset,
     camera->yaw += x_off;
     camera->pitch += y_off;
 
-    camera->pitch = fmax(fmin(camera->pitch, 89.0f), -89.0f);
+    camera->pitch = fmaxf(fminf(camera->pitch, 89.0f), -89.0f);
 
     camera_update(camera);
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
-    (void) mods; (void) scancode;
+    (void)mods;
+    (void)scancode;
     PerspectiveCamera *camera = glfwGetWindowUserPointer(window);
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -135,18 +138,14 @@ typedef struct {
 int main() {
     GLFWwindow *window = create_window();
 
-    Material material = {
-        .ambient = {1.0f, 0.5f, 0.31f},
+    Material material = {.ambient = {1.0f, 0.5f, 0.31f},
         .specular = {1.0f, 0.5f, 0.31f},
         .diffuse = {0.5f, 0.5f, 0.5f},
-        .shininess = 32.0f
-    };
-    Light light = {
-        .position = {25.0f, 25.0f, 25.0f},
+        .shininess = 32.0f};
+    Light light = {.position = {25.0f, 25.0f, 25.0f},
         .ambient = {0.2f, 0.2f, 0.2f},
         .specular = {0.5f, 0.5f, 0.5f},
-        .diffuse = {1.0f, 1.0f, 1.0f}
-    };
+        .diffuse = {1.0f, 1.0f, 1.0f}};
 
     MeshRenderer mesh_renderer = {
         .material = material,
@@ -161,8 +160,7 @@ int main() {
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
-    PerspectiveCamera camera = {
-        .position = {50.0f, 50.0f, 50.0f},
+    PerspectiveCamera camera = {.position = {50.0f, 50.0f, 50.0f},
         .yaw = 45.0f,
         .pitch = 30.0f,
         .speed = 2.5f,
@@ -170,33 +168,41 @@ int main() {
         .z_near = 0.1f,
         .z_far = 500.0f,
         .fov_half_degrees = 45.0f,
-        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
+        .aspect = (float)(SCREEN_WIDTH) /
+        (float)(SCREEN_HEIGHT),
         .last_cursor_position_x = (float)xpos,
-        .last_cursor_position_y = (float)ypos
-    };
+        .last_cursor_position_y = (float)ypos};
 
     glfwSetWindowUserPointer(window, &camera);
 
-    Mat4x4f model = MAT4X4F_IDENTITY_INITIALIZER;
-
-    Vec3f rot_axis = {0.0f, 1.0f, 1.0f};
+    Vec3f rot_axis = {0.0f, 0.0f, 1.0f};
     vec3f_normalize(rot_axis);
-    Quat rot = {0};
-    quat(rot_axis, degrees_to_rad(0.5f), rot);
-    Vec3f scale = {10.0f, 10.0f, 10.0f};
-    mat4x4f_scale(model, scale);
-    Vec3f trans = {0.1f, 0.0f, 0.0f};
+    Quat rot_start = {0};
+    Quat rot_end = {0};
+    quat(rot_axis, degrees_to_rad(0.0f), rot_start);
+    quat(rot_axis, degrees_to_rad(180.0f), rot_end);
 
+    // Vec3f scale = {10.0f, 10.0f, 10.0f};
+    // mat4x4f_scale(model, scale);
+    // Vec3f trans = {0.1f, 0.0f, 0.0f};
+
+    float t = 0.0f;
+    const float dt = 0.005f;
     while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Mat4x4f model = MAT4X4F_IDENTITY_INITIALIZER;
 
-        // for (size_t i = 0; i < mesh.vertices.count; ++i) {
-        //     quat_rotate(rot, mesh_renderer.mesh.vertices.data[i].pos, mesh_renderer.mesh.vertices.data[i].pos);
-        // }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Quat rot = {0};
+
+        t = fmodf(t + dt, 1.0f);
+        quat_slerp(rot_start, rot_end, t, rot);
+
+        // mat4x4f_rotate(model, rot_axis, degrees_to_rad(180.0f) * t);
+        mat4x4f_rotate_q(model, rot);
+
         camera_update(&camera);
         mesh_renderer_draw(&mesh_renderer, &camera, model);
         lines_renderer_draw(&axis_renderer, &camera);
-
 
         glfwSwapBuffers(window);
         glfwPollEvents();

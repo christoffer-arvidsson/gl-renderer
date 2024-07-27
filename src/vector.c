@@ -57,3 +57,15 @@ void vec4f_print(const Vec4f v) {
 void vec4f_clone(const Vec4f src, Vec4f dest) {
     memcpy(dest, src, 4 * sizeof(dest[0]));
 }
+
+float vec4f_norm(Vec4f v) {
+    return sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2] + v[3] * v[3]);
+}
+
+void vec4f_normalize(Vec4f v) {
+    float norm_r = 1.0f / vec4f_norm(v);
+    v[0] *= norm_r;
+    v[1] *= norm_r;
+    v[2] *= norm_r;
+    v[3] *= norm_r;
+}

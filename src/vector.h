@@ -26,5 +26,9 @@ void vec4f_print(const Vec4f v);
 
 void vec4f_clone(const Vec4f src, Vec4f dest);
 
+float vec4f_norm(Vec4f v);
+
+void vec4f_normalize(Vec4f v);
+
 
 #endif // VECTOR_H_
