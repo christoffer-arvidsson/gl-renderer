@@ -15,12 +15,10 @@ void lines_renderer_init(LinesRenderer* renderer) {
 
     glGenBuffers(1, &renderer->ssbo);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderer->ssbo);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, VERTEX_BUFFER_CAPACITY * sizeof(renderer->vertices.data[0]), renderer->vertices.data, GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, renderer->vertices.capacity * sizeof(renderer->vertices.data[0]), renderer->vertices.data, GL_DYNAMIC_DRAW);
     glUseProgram(0);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     glBindVertexArray(0);
-
-    printf("%lu\n", sizeof(Vertex));
 
 }
 

@@ -3,7 +3,15 @@
 #include "lighting.h"
 #include "matrix.h"
 #include "shader.h"
+#include "vertex.h"
 #include <GL/gl.h>
+
+Mesh mesh_alloc(Region* allocator, size_t vertex_capacity) {
+    Mesh mesh = {
+        .vertices = vertex_buffer_alloc(allocator, vertex_capacity)
+    };
+    return mesh;
+}
 
 void mesh_renderer_init(MeshRenderer* renderer) {
     const VertexBuffer* vertices = &renderer->mesh.vertices;
@@ -16,7 +24,7 @@ void mesh_renderer_init(MeshRenderer* renderer) {
     glGenBuffers(1, &renderer->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
     glBufferData(GL_ARRAY_BUFFER,
-                 VERTEX_BUFFER_CAPACITY * sizeof(vertices->data[0]),
+                 renderer->mesh.vertices.capacity * sizeof(vertices->data[0]),
                  vertices->data, GL_STATIC_DRAW);
 
     glVertexAttribPointer(MESH_POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE,

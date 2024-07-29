@@ -1,6 +1,7 @@
 #ifndef MESH_H_
 #define MESH_H_
 
+#include "arena.h"
 #include "camera.h"
 #include "lighting.h"
 #include "shader.h"
@@ -31,6 +32,7 @@ typedef struct {
     Shader shader;
 } MeshRenderer;
 
+Mesh mesh_alloc(Region* allocator, size_t vertex_capacity);
 void mesh_renderer_init(MeshRenderer* renderer);
 void mesh_renderer_draw(const MeshRenderer* renderer,
                         const PerspectiveCamera* camera,

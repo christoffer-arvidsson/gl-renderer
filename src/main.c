@@ -1,3 +1,4 @@
+#include "arena.h"
 #include "camera.h"
 #include "line.h"
 #include "matrix.h"
@@ -24,6 +25,8 @@
 
 #define SCREEN_WIDTH 1920U
 #define SCREEN_HEIGHT 1080U
+
+#define REGION_SIZE (256 * 1028 * 1028)
 
 Vertex AXIS_LINES[] = {
     {.pos={0.0f, 0.0f, 0.0f}, .color={1.0f, 0.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
@@ -123,8 +126,7 @@ GLFWwindow *create_window() {
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, camera_mouse_callback);
@@ -136,6 +138,8 @@ GLFWwindow *create_window() {
 
 int main() {
     GLFWwindow *window = create_window();
+
+    Region allocator = region_alloc_alloc(REGION_SIZE);
 
     Material material = {
         .ambient = {1.0f, 0.5f, 0.31f},
@@ -150,18 +154,19 @@ int main() {
         .diffuse = {1.0f, 1.0f, 1.0f}
     };
 
-    // MeshRenderer mesh_renderer = {
-    //     .material = material,
-    //     .light = light
-    // };
-    // load_teapot_vertices("assets/meshes/teapot_large.txt", &mesh_renderer.mesh);
-    // mesh_renderer_init(&mesh_renderer);
+    MeshRenderer mesh_renderer = {
+        .material = material,
+        .light = light,
+        .mesh = load_teapot_vertices(&allocator, "assets/meshes/teapot_large.txt")
+    };
+    mesh_renderer_init(&mesh_renderer);
 
     LinesRenderer axis_renderer = {
         .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
         .thickness = 2.0f,
         .aa_radius = {3.0f, 3.0f}
     };
+    axis_renderer.vertices = vertex_buffer_alloc(&allocator, 6U);
     for (size_t i = 0U; i < 6U; ++i) {
         vertex_buffer_push(&axis_renderer.vertices, &AXIS_LINES[i]);
     }
@@ -212,7 +217,7 @@ int main() {
         mat4x4f_rotate_q(model, rot);
 
         camera_update(&camera);
-        // mesh_renderer_draw(&mesh_renderer, &camera, model);
+        mesh_renderer_draw(&mesh_renderer, &camera, model);
         lines_renderer_draw(&axis_renderer, &camera);
 
         glfwSwapBuffers(window);

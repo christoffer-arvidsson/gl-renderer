@@ -1,16 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "arena.h"
 #include "mesh.h"
+#include "vertex.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
-Mesh* load_teapot_vertices(const char *filename, Mesh* mesh) {
+Mesh load_teapot_vertices(Region* allocator, const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         fprintf(stderr, "Could not open file %s\n", filename);
-        return NULL;
+        assert(false);
     }
 
     size_t num_triangles = 0U;
@@ -18,6 +21,9 @@ Mesh* load_teapot_vertices(const char *filename, Mesh* mesh) {
 
     // Skip the rest of the line after reading num_triangles
     while (fgetc(file) != '\n');
+
+    size_t num_vertices = num_triangles * 3U;
+    Mesh mesh = mesh_alloc(allocator, num_vertices);
 
     for (size_t i = 0U; i < num_triangles; ++i) {
         for (size_t v = 0U; v < 3U; ++v) {
@@ -30,11 +36,10 @@ Mesh* load_teapot_vertices(const char *filename, Mesh* mesh) {
                        &vert.normal[0], &vert.normal[1], &vert.normal[2]
                        ) != 6U) {
                 fprintf(stderr, "Error reading vertex data at triangle %zu\n", i);
-                free(mesh);
                 fclose(file);
-                return NULL;
+                assert(false);
             }
-            vertex_buffer_push(&mesh->vertices, &vert);
+            vertex_buffer_push(&mesh.vertices, &vert);
         }
     }
 
