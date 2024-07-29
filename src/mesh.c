@@ -3,15 +3,7 @@
 #include "lighting.h"
 #include "matrix.h"
 #include "shader.h"
-#include <assert.h>
-#include <string.h>
 #include <GL/gl.h>
-
-void vertex_buffer_push(VertexBuffer* buf, Vertex* vertex) {
-    assert(buf->count < VERTEX_BUFFER_CAPACITY);
-    memcpy(&buf->data[buf->count], vertex, sizeof(*vertex));
-    buf->count++;
-}
 
 void mesh_renderer_init(MeshRenderer* renderer) {
     const VertexBuffer* vertices = &renderer->mesh.vertices;
@@ -27,17 +19,17 @@ void mesh_renderer_init(MeshRenderer* renderer) {
                  VERTEX_BUFFER_CAPACITY * sizeof(vertices->data[0]),
                  vertices->data, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(MESH_POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE,
                           sizeof(vertices->data[0]), (GLvoid *)offsetof(Vertex, pos));
-    glEnableVertexAttribArray(POSITION_ATTRIB);
+    glEnableVertexAttribArray(MESH_POSITION_ATTRIB);
 
-    glVertexAttribPointer(COLOR_ATTRIB, 3, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(MESH_COLOR_ATTRIB, 3, GL_FLOAT, GL_FALSE,
                           sizeof(vertices->data[0]), (GLvoid *)offsetof(Vertex, color));
-    glEnableVertexAttribArray(COLOR_ATTRIB);
+    glEnableVertexAttribArray(MESH_COLOR_ATTRIB);
 
-    glVertexAttribPointer(NORMAL_ATTRIB, 3, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(MESH_NORMAL_ATTRIB, 3, GL_FLOAT, GL_FALSE,
                           sizeof(vertices->data[0]), (GLvoid *)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(NORMAL_ATTRIB);
+    glEnableVertexAttribArray(MESH_NORMAL_ATTRIB);
 }
 
 void mesh_renderer_draw(const MeshRenderer* renderer,

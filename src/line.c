@@ -2,60 +2,41 @@
 #include "camera.h"
 #include "shader.h"
 #include "vector.h"
-
-typedef enum {
-    POSITION_ATTRIB = 0,
-    COLOR_ATTRIB = 1
-} LineAttributes;
-
-typedef struct {
-    Vec3f start;
-    Vec3f start_color;
-    Vec3f end;
-    Vec3f end_color;
-} Line;
-
-Line AXIS_LINES[3] = {
-    {{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-};
+#include "vertex.h"
+#include <stdio.h>
 
 void lines_renderer_init(LinesRenderer* renderer) {
-    shader_create("assets/shaders/axis.vert", "assets/shaders/axis.frag",
+    shader_create("assets/shaders/line.vert", "assets/shaders/line.frag",
                   &renderer->shader);
     shader_use(&renderer->shader);
 
     glGenVertexArrays(1, &renderer->vao);
     glBindVertexArray(renderer->vao);
 
-    glGenBuffers(1, &renderer->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(AXIS_LINES), AXIS_LINES,
-                 GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, 6 *sizeof(GLfloat),
-                          (GLvoid *)offsetof(Line, start));
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(COLOR_ATTRIB, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
-                          (GLvoid *)(offsetof(Line, start_color)));
-
+    glGenBuffers(1, &renderer->ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, renderer->ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, VERTEX_BUFFER_CAPACITY * sizeof(renderer->vertices.data[0]), renderer->vertices.data, GL_DYNAMIC_DRAW);
     glUseProgram(0);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     glBindVertexArray(0);
+
+    printf("%lu\n", sizeof(Vertex));
 
 }
 
 void lines_renderer_draw(const LinesRenderer *renderer, const PerspectiveCamera* camera) {
     shader_use(&renderer->shader);
     glBindVertexArray(renderer->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, renderer->ssbo);
 
     shader_set_mat4x4f(&renderer->shader, "view", camera->view);
     shader_set_mat4x4f(&renderer->shader, "projection", camera->projection);
+    shader_set_vec2f(&renderer->shader, "viewport_size", camera->viewport);
+    shader_set_vec2f(&renderer->shader, "aa_radius", renderer->aa_radius);
+    shader_set_float(&renderer->shader, "thickness", renderer->thickness);
 
-    glDrawArrays(GL_LINES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0U, 3U * renderer->vertices.count);
     glBindVertexArray(0);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // unbind
     glUseProgram(0);
 }

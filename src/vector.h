@@ -1,6 +1,7 @@
 #ifndef VECTOR_H_
 #define VECTOR_H_
 
+typedef float Vec2f[2];
 typedef float Vec3f[3];
 typedef float Vec4f[4];
 

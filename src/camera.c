@@ -4,11 +4,6 @@
 #include "vector.h"
 #include <math.h>
 
-#define YAW 0.0f
-#define PITCH 0.0f
-#define SPEED 2.5f
-#define SENSITIVITY 0.1f
-
 void camera_update_view_matrix(PerspectiveCamera *camera, Mat4x4f dest) {
     Vec3f dir = {0};
     vec3f_add(camera->position, camera->front, dir);
@@ -72,3 +67,4 @@ void camera_move(PerspectiveCamera *camera, enum CameraDir dir) {
             break;
     }
 }
+

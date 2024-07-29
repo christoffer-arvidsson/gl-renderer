@@ -1,4 +1,3 @@
-
 #include "camera.h"
 #include "line.h"
 #include "matrix.h"
@@ -16,6 +15,7 @@
 #include <math.h>
 
 #include "teapot.h"
+#include "vertex.h"
 
 #define GLEW_STATIC
 #include <GL/gl.h>
@@ -24,6 +24,15 @@
 
 #define SCREEN_WIDTH 1920U
 #define SCREEN_HEIGHT 1080U
+
+Vertex AXIS_LINES[] = {
+    {.pos={0.0f, 0.0f, 0.0f}, .color={1.0f, 0.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
+    {.pos={1.0f, 0.0f, 0.0f}, .color={1.0f, 0.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
+    {.pos={0.0f, 0.0f, 0.0f}, .color={0.0f, 1.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
+    {.pos={0.0f, 1.0f, 0.0f}, .color={0.0f, 1.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
+    {.pos={0.0f, 0.0f, 0.0f}, .color={0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f}},
+    {.pos={0.0f, 0.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f}},
+};
 
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                       GLsizei length, const GLchar *message,
@@ -114,7 +123,8 @@ GLFWwindow *create_window() {
     glEnable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    // glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, camera_mouse_callback);
@@ -123,38 +133,38 @@ GLFWwindow *create_window() {
     return window;
 }
 
-typedef struct {
-    GLfloat data[VERTEX_BUFFER_CAPACITY];
-    size_t count;
-} Buffer;
-
-typedef struct {
-    GLuint vao;
-    GLuint vbo;
-    GLuint ebo;
-    Shader shader;
-} Renderer;
 
 int main() {
     GLFWwindow *window = create_window();
 
-    Material material = {.ambient = {1.0f, 0.5f, 0.31f},
+    Material material = {
+        .ambient = {1.0f, 0.5f, 0.31f},
         .specular = {1.0f, 0.5f, 0.31f},
         .diffuse = {0.5f, 0.5f, 0.5f},
-        .shininess = 32.0f};
-    Light light = {.position = {25.0f, 25.0f, 25.0f},
+        .shininess = 32.0f
+    };
+    Light light = {
+        .position = {25.0f, 25.0f, 25.0f},
         .ambient = {0.2f, 0.2f, 0.2f},
         .specular = {0.5f, 0.5f, 0.5f},
-        .diffuse = {1.0f, 1.0f, 1.0f}};
-
-    MeshRenderer mesh_renderer = {
-        .material = material,
-        .light = light,
+        .diffuse = {1.0f, 1.0f, 1.0f}
     };
-    load_teapot_vertices("assets/meshes/teapot_large.txt", &mesh_renderer.mesh);
-    mesh_renderer_init(&mesh_renderer);
 
-    LinesRenderer axis_renderer = {0};
+    // MeshRenderer mesh_renderer = {
+    //     .material = material,
+    //     .light = light
+    // };
+    // load_teapot_vertices("assets/meshes/teapot_large.txt", &mesh_renderer.mesh);
+    // mesh_renderer_init(&mesh_renderer);
+
+    LinesRenderer axis_renderer = {
+        .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
+        .thickness = 2.0f,
+        .aa_radius = {3.0f, 3.0f}
+    };
+    for (size_t i = 0U; i < 6U; ++i) {
+        vertex_buffer_push(&axis_renderer.vertices, &AXIS_LINES[i]);
+    }
     lines_renderer_init(&axis_renderer);
 
     double xpos, ypos;
@@ -168,19 +178,20 @@ int main() {
         .z_near = 0.1f,
         .z_far = 500.0f,
         .fov_half_degrees = 45.0f,
-        .aspect = (float)(SCREEN_WIDTH) /
-        (float)(SCREEN_HEIGHT),
+        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
+        .viewport = {SCREEN_WIDTH, SCREEN_HEIGHT},
         .last_cursor_position_x = (float)xpos,
         .last_cursor_position_y = (float)ypos};
 
     glfwSetWindowUserPointer(window, &camera);
 
     Vec3f rot_axis = {0.0f, 0.0f, 1.0f};
+    Vec3f rot_axis2 = {0.0f, 1.0f, 0.5f};
     vec3f_normalize(rot_axis);
     Quat rot_start = {0};
     Quat rot_end = {0};
     quat(rot_axis, degrees_to_rad(0.0f), rot_start);
-    quat(rot_axis, degrees_to_rad(180.0f), rot_end);
+    quat(rot_axis2, degrees_to_rad(180.0f), rot_end);
 
     // Vec3f scale = {10.0f, 10.0f, 10.0f};
     // mat4x4f_scale(model, scale);
@@ -201,7 +212,7 @@ int main() {
         mat4x4f_rotate_q(model, rot);
 
         camera_update(&camera);
-        mesh_renderer_draw(&mesh_renderer, &camera, model);
+        // mesh_renderer_draw(&mesh_renderer, &camera, model);
         lines_renderer_draw(&axis_renderer, &camera);
 
         glfwSwapBuffers(window);

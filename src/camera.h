@@ -25,6 +25,7 @@ typedef struct {
     float speed;
     float sensitivity;
     float aspect;
+    Vec2f viewport;
 
     float last_cursor_position_x;
     float last_cursor_position_y;
@@ -35,6 +36,8 @@ typedef struct {
 
 void camera_update(PerspectiveCamera* camera);
 
-void camera_move(PerspectiveCamera *camera, enum CameraDir dir);
+void camera_move(PerspectiveCamera* camera, enum CameraDir dir);
+
+void camera_to_mat4(PerspectiveCamera* camera, Mat4x4f dest);
 
 #endif // CAMERA_H_

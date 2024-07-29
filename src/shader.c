@@ -128,7 +128,18 @@ void shader_set_vec3f(const Shader* shader, char* name, const Vec3f v) {
     glUniform3f(uniform, v[0], v[1], v[2]);
 }
 
+void shader_set_vec2f(const Shader* shader, char* name, const Vec2f v) {
+    GLint uniform = glGetUniformLocation(shader->program_id, name);
+    glUniform2f(uniform, v[0], v[1]);
+}
+
 void shader_set_float(const Shader* shader, char* name, float v) {
     GLint uniform = glGetUniformLocation(shader->program_id, name);
     glUniform1f(uniform, v);
 }
+
+void shader_set_int(const Shader* shader, char* name, int v) {
+    GLint uniform = glGetUniformLocation(shader->program_id, name);
+    glUniform1i(uniform, v);
+}
+

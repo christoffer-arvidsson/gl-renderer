@@ -1,6 +1,6 @@
 CXX = gcc
 CXXFLAGS = -Wall -Wextra -std=c17 -pedantic -ggdb
-LIBS = -lglfw -lGLEW -lGL -lX11 -lopenal -lm -pthread -ldl 
+LIBS = -lglfw -lGLEW -lGL -lX11 -lopenal -lm -pthread -ldl
 SRC_DIR = src/
 TARGET = bin/main
 
