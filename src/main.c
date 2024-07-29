@@ -29,12 +29,12 @@
 #define REGION_SIZE (256 * 1028 * 1028)
 
 Vertex AXIS_LINES[] = {
-    {.pos={0.0f, 0.0f, 0.0f}, .color={1.0f, 0.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
-    {.pos={1.0f, 0.0f, 0.0f}, .color={1.0f, 0.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
-    {.pos={0.0f, 0.0f, 0.0f}, .color={0.0f, 1.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
-    {.pos={0.0f, 1.0f, 0.0f}, .color={0.0f, 1.0f, 0.0f}, .normal={0.0f, 0.0f, 0.0f}},
-    {.pos={0.0f, 0.0f, 0.0f}, .color={0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f}},
-    {.pos={0.0f, 0.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f}},
+    {.pos={0.0f, 0.0f, 0.0f, 1.0f}, .color={1.0f, 0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
+    {.pos={1.0f, 0.0f, 0.0f, 1.0f}, .color={1.0f, 0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
+    {.pos={0.0f, 0.0f, 0.0f, 1.0f}, .color={0.0f, 1.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
+    {.pos={0.0f, 1.0f, 0.0f, 1.0f}, .color={0.0f, 1.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
+    {.pos={0.0f, 0.0f, 0.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
+    {.pos={0.0f, 0.0f, 1.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
 };
 
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,

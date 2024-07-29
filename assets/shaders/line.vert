@@ -1,9 +1,9 @@
 #version 450
 
 struct Vertex {
-    vec3 position;
-    vec3 color;
-    vec3 normal;
+    vec4 position;
+    vec4 color;
+    vec4 normal;
 };
 
 layout(shared, binding = 0) buffer vertex_buffer { Vertex vertices[]; };
@@ -37,8 +37,8 @@ void main() {
 
     Vertex line_vertices[2] = {vertices[line_id_0], vertices[line_id_1]};
 
-    vec4 clip_pos_a = pvm * vec4(line_vertices[0].position, 1.0);
-    vec4 clip_pos_b = pvm * vec4(line_vertices[1].position, 1.0);
+    vec4 clip_pos_a = pvm * vec4(line_vertices[0].position.xyz, 1.0);
+    vec4 clip_pos_b = pvm * vec4(line_vertices[1].position.xyz, 1.0);
 
     vec2 ndc_pos_a = clip_pos_a.xy / clip_pos_a.w;
     vec2 ndc_pos_b = clip_pos_b.xy / clip_pos_b.w;
@@ -71,7 +71,7 @@ void main() {
         quad_pos.y * ((1.0 - quad_pos.x) * normal_a + quad_pos.x * normal_b);
     vec2 dir_x = quad_pos.x * line_vector + (2.0 * quad_pos.x - 1.0) * extension;
 
-    v_col = vec4(line_vertices[quad_pos.x].color, 1.0f);
+    v_col = line_vertices[quad_pos.x].color;
     v_col.a = min(thickness * v_col.a, 1.0f);
 
     gl_Position = vec4((ndc_pos_a + dir_x + dir_y) * zw_part.y, zw_part);

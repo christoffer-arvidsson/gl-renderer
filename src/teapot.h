@@ -29,7 +29,9 @@ Mesh load_teapot_vertices(Region* allocator, const char *filename) {
         for (size_t v = 0U; v < 3U; ++v) {
 
             Vertex vert = {
-                .color = {1.0f, 1.0f, 1.0f}
+                .pos = {0.0f, 0.0f, 0.0f, 1.0f},
+                .color = {1.0f, 1.0f, 1.0f, 1.0f},
+                .normal = {0.0f, 0.0f, 0.0f, 1.0f}
             };  // White for now
             if (fscanf(file, "%f %f %f\n%f %f %f",
                        &vert.pos[0], &vert.pos[1], &vert.pos[2],

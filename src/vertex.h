@@ -6,12 +6,9 @@
 #include <stdlib.h>
 
 typedef struct {
-    Vec3f pos;
-    float pad1;
-    Vec3f color;
-    float pad2;
-    Vec3f normal;
-    float align1;
+    Vec4f pos;
+    Vec4f color;
+    Vec4f normal;
 } Vertex;
 
 typedef struct {
