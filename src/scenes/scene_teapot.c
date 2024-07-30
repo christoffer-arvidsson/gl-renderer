@@ -101,21 +101,20 @@ void teapot_scene_init(Region* allocator, Scene* scene) {
     double xpos, ypos;
     glfwGetCursorPos(scene->window, &xpos, &ypos);
 
-    scene->camera.position[0] = 50.0f;
-    scene->camera.position[1] = 50.0f;
-    scene->camera.position[2] = 50.0f;
-    scene->camera.yaw = 45.0f,
-    scene->camera.pitch = 30.0f,
-    scene->camera.speed = 2.5f,
-    scene->camera.sensitivity = 0.1f,
-    scene->camera.z_near = 0.1f,
-    scene->camera.z_far = 500.0f,
-    scene->camera.fov_half_degrees = 45.0f,
-    scene->camera.aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
-    scene->camera.viewport[0] = SCREEN_WIDTH,
-    scene->camera.viewport[1] = SCREEN_HEIGHT,
-    scene->camera.last_cursor_position_x = (float)xpos,
-    scene->camera.last_cursor_position_y = (float)ypos;
+    scene->camera = (PerspectiveCamera) {
+        .position = {50.0f, 50.0f, 50.0f},
+        .yaw = 45.0f,
+        .pitch = 30.0f,
+        .speed = 2.5f,
+        .sensitivity = 0.1f,
+        .z_near = 0.1f,
+        .z_far = 500.0f,
+        .fov_half_degrees = 45.0f,
+        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
+        .viewport = {SCREEN_WIDTH, SCREEN_HEIGHT},
+        .last_cursor_position_x = (float)xpos,
+        .last_cursor_position_y = (float)ypos,
+    };
 
     glfwSetWindowUserPointer(scene->window, &scene->camera);
 }
