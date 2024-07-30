@@ -4,6 +4,7 @@
 #include "arena.h"
 #include "camera.h"
 #include "lighting.h"
+#include "matrix.h"
 #include "shader.h"
 #include "vector.h"
 #include "vertex.h"
@@ -27,6 +28,8 @@ typedef struct {
     Light light;
     Mesh mesh;
 
+    Mat4x4f model;
+
     GLuint vao;
     GLuint vbo;
     Shader shader;
@@ -35,8 +38,7 @@ typedef struct {
 Mesh mesh_alloc(Region* allocator, size_t vertex_capacity);
 void mesh_renderer_init(MeshRenderer* renderer);
 void mesh_renderer_draw(const MeshRenderer* renderer,
-                        const PerspectiveCamera* camera,
-                        const Mat4x4f model);
+                        const PerspectiveCamera* camera);
 
 
 #endif  // MESH_H_

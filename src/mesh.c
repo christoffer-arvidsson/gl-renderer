@@ -41,8 +41,7 @@ void mesh_renderer_init(MeshRenderer* renderer) {
 }
 
 void mesh_renderer_draw(const MeshRenderer* renderer,
-                        const PerspectiveCamera* camera,
-                        const Mat4x4f model) {
+                        const PerspectiveCamera* camera) {
     glBindVertexArray(renderer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, renderer->vbo);
 
@@ -53,7 +52,7 @@ void mesh_renderer_draw(const MeshRenderer* renderer,
 
     shader_use(&renderer->shader);
 
-    shader_set_mat4x4f(&renderer->shader, "model", model);
+    shader_set_mat4x4f(&renderer->shader, "model", renderer->model);
     shader_set_mat4x4f(&renderer->shader, "view", camera->view);
     shader_set_mat4x4f(&renderer->shader, "projection", camera->projection);
     shader_set_vec3f(&renderer->shader, "view_pos", camera->position);

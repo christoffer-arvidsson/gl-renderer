@@ -23,6 +23,13 @@ void mat4x4f_set_zeroes(Mat4x4f dest) {
     }
 }
 
+void mat4x4f_set_identity(Mat4x4f dest) {
+    mat4x4f_set_zeroes(dest);
+    for (size_t i = 0; i < 4U; ++i) {
+        dest[i][i] = 1.0f;
+    }
+}
+
 void mat4x4f_scale(Mat4x4f m1, const Vec3f scale) {
     m1[0][0] *= scale[0];
     m1[1][1] *= scale[1];

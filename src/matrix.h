@@ -28,6 +28,8 @@ void mat4x4f_print(const Mat4x4f m);
 
 void mat4x4f_set_zeroes(Mat4x4f dest);
 
+void mat4x4f_set_identity(Mat4x4f dest);
+
 void mat4x4f_scale(Mat4x4f m1, const Vec3f scale);
 
 void mat4x4f_mul(const Mat4x4f m1, const Mat4x4f m2, Mat4x4f d);

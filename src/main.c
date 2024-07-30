@@ -1,42 +1,24 @@
 #include "arena.h"
+#include "constants.h"
 #include "camera.h"
-#include "line.h"
-#include "matrix.h"
-#include "mesh.h"
-#include "quat.h"
+#include "scene.h"
+#include "scenes/scene_plotting.h"
+#include "scenes/scene_teapot.h"
 #include "shader.h"
-#include "shape.h"
 #include "stdbool.h"
 #include "stddef.h"
-#include "trig.h"
-#include "vector.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-#include "teapot.h"
-#include "vertex.h"
-
 #define GLEW_STATIC
 #include <GL/gl.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#define SCREEN_WIDTH 1920U
-#define SCREEN_HEIGHT 1080U
-
 #define REGION_SIZE (256 * 1028 * 1028)
-
-Vertex AXIS_LINES[] = {
-    {.pos={0.0f, 0.0f, 0.0f, 1.0f}, .color={1.0f, 0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
-    {.pos={1.0f, 0.0f, 0.0f, 1.0f}, .color={1.0f, 0.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
-    {.pos={0.0f, 0.0f, 0.0f, 1.0f}, .color={0.0f, 1.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
-    {.pos={0.0f, 1.0f, 0.0f, 1.0f}, .color={0.0f, 1.0f, 0.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
-    {.pos={0.0f, 0.0f, 0.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
-    {.pos={0.0f, 0.0f, 1.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
-};
 
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                       GLsizei length, const GLchar *message,
@@ -135,111 +117,45 @@ GLFWwindow *create_window() {
 
     return window;
 }
-void generate_axis_vertices(VertexBuffer* vb) {
-    for (size_t i = 0U; i < 6U; ++i) {
-        vertex_buffer_push(vb, &AXIS_LINES[i]);
-    }
-}
 
 int main() {
-    GLFWwindow *window = create_window();
+    GLFWwindow* window = create_window();
 
     Region allocator = region_alloc_alloc(REGION_SIZE);
 
-    Material material = {
-        .ambient = {1.0f, 0.5f, 0.31f},
-        .specular = {1.0f, 0.5f, 0.31f},
-        .diffuse = {0.5f, 0.5f, 0.5f},
-        .shininess = 32.0f
-    };
-    Light light = {
-        .position = {25.0f, 25.0f, 25.0f},
-        .ambient = {0.2f, 0.2f, 0.2f},
-        .specular = {0.5f, 0.5f, 0.5f},
-        .diffuse = {1.0f, 1.0f, 1.0f}
+    Scene scene = {
+        .window = window,
+        .init_fn = &teapot_scene_init,
+        .render_fn = &teapot_scene_render,
+        .update_fn = &teapot_scene_update,
+        .deinit_fn = &teapot_scene_deinit,
     };
 
-    MeshRenderer mesh_renderer = {
-        .material = material,
-        .light = light,
-        .mesh = load_teapot_vertices(&allocator, "assets/meshes/teapot_large.txt")
-    };
-    mesh_renderer_init(&mesh_renderer);
+    // Scene scene = {
+    //     .window = window,
+    //     .init_fn = &plotting_scene_init,
+    //     .render_fn = &plotting_scene_render,
+    //     .update_fn = &plotting_scene_update,
+    //     .deinit_fn = &plotting_scene_deinit,
+    // };
 
-    LinesRenderer axis_renderer = {
-        .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
-        .thickness = 3.0f,
-        .aa_radius = {1.0f, 1.0f}
-    };
-    axis_renderer.vertices = vertex_buffer_alloc(&allocator, 6U);
-    generate_axis_vertices(&axis_renderer.vertices);
-    lines_renderer_init(&axis_renderer);
-
-    LinesRenderer function_renderer = {
-        .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
-        .thickness = 3.0f,
-        .aa_radius = {2.0f, 0.0f}
-    };
-
-    size_t n_samples = 1000U;
-    function_renderer.vertices = vertex_buffer_alloc(&allocator, n_samples * 2U);
-    generate_quadratic_bezier_vertices(&function_renderer.vertices, 5.0f, 3.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
-    generate_cubic_bezier_vertices(&function_renderer.vertices, 5.0f, 3.0f, 8.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
-    generate_polyline_vertices(&function_renderer.vertices, -5.0f, 5.0f, n_samples / 4U);
-    lines_renderer_init(&function_renderer);
-
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-
-    PerspectiveCamera camera = {.position = {50.0f, 50.0f, 50.0f},
-        .yaw = 45.0f,
-        .pitch = 30.0f,
-        .speed = 2.5f,
-        .sensitivity = 0.1f,
-        .z_near = 0.1f,
-        .z_far = 500.0f,
-        .fov_half_degrees = 45.0f,
-        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
-        .viewport = {SCREEN_WIDTH, SCREEN_HEIGHT},
-        .last_cursor_position_x = (float)xpos,
-        .last_cursor_position_y = (float)ypos};
-
-    glfwSetWindowUserPointer(window, &camera);
-
-    Vec3f rot_axis = {0.0f, 0.0f, 1.0f};
-    Vec3f rot_axis2 = {0.0f, 1.0f, 0.5f};
-    vec3f_normalize(rot_axis);
-    Quat rot_start = {0};
-    Quat rot_end = {0};
-    quat(rot_axis, degrees_to_rad(0.0f), rot_start);
-    quat(rot_axis2, degrees_to_rad(180.0f), rot_end);
-
-    // Vec3f scale = {10.0f, 10.0f, 10.0f};
-    // mat4x4f_scale(model, scale);
-    // Vec3f trans = {0.1f, 0.0f, 0.0f};
+    scene.init_fn(&allocator, &scene);
 
     float t = 0.0f;
     const float dt = 0.005f;
     while (!glfwWindowShouldClose(window)) {
-        Mat4x4f model = MAT4X4F_IDENTITY_INITIALIZER;
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Quat rot = {0};
-
         t = fmodf(t + dt, 1.0f);
-        quat_slerp(rot_start, rot_end, t, rot);
 
-        // mat4x4f_rotate(model, rot_axis, degrees_to_rad(180.0f) * t);
-        mat4x4f_rotate_q(model, rot);
-
-        camera_update(&camera);
-        mesh_renderer_draw(&mesh_renderer, &camera, model);
-        lines_renderer_draw(&axis_renderer, &camera);
-        lines_renderer_draw(&function_renderer, &camera);
+        scene.update_fn(&scene, t);
+        scene.render_fn(&scene);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    scene.deinit_fn(&scene);
+
     return 0;
 }
+
