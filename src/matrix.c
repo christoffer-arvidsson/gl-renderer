@@ -37,10 +37,11 @@ void mat4x4f_scale(Mat4x4f m1, const Vec3f scale) {
 }
 
 void mat4x4f_mul(const Mat4x4f m1, const Mat4x4f m2, Mat4x4f d) {
-    __m128 row1 = _mm_load_ps(m2[0]);
-    __m128 row2 = _mm_load_ps(m2[1]);
-    __m128 row3 = _mm_load_ps(m2[2]);
-    __m128 row4 = _mm_load_ps(m2[3]);
+    // todo: don't load unaligned here once allocator alignt things
+    __m128 row1 = _mm_loadu_ps(m2[0]);
+    __m128 row2 = _mm_loadu_ps(m2[1]);
+    __m128 row3 = _mm_loadu_ps(m2[2]);
+    __m128 row4 = _mm_loadu_ps(m2[3]);
     for (int i = 0; i < 4; i++) {
         __m128 brod1 = _mm_set1_ps(m1[i][0]);
         __m128 brod2 = _mm_set1_ps(m1[i][1]);
@@ -49,7 +50,8 @@ void mat4x4f_mul(const Mat4x4f m1, const Mat4x4f m2, Mat4x4f d) {
         __m128 row = _mm_add_ps(
             _mm_add_ps(_mm_mul_ps(brod1, row1), _mm_mul_ps(brod2, row2)),
             _mm_add_ps(_mm_mul_ps(brod3, row3), _mm_mul_ps(brod4, row4)));
-        _mm_store_ps(d[i], row);
+        // todo: don't store unaligned here once allocator alignt things
+        _mm_storeu_ps(d[i], row);
     }
 }
 

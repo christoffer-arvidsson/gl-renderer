@@ -6,19 +6,25 @@
 #include "../scene.h"
 #include "../shape.h"
 
+typedef struct {
+    LinesRenderer line_renderer;
+} PlottingState;
+
 void plotting_scene_init(Region* allocator, Scene* scene) {
-    scene->line_renderer = (LinesRenderer) {
+    scene->state = region_alloc(allocator, sizeof(PlottingState));
+    PlottingState* state = (PlottingState*) scene->state;
+    state->line_renderer = (LinesRenderer) {
         .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
         .thickness = 3.0f,
         .aa_radius = {2.0f, 0.0f}
     };
 
     size_t n_samples = 1000U;
-    scene->line_renderer.vertices = vertex_buffer_alloc(allocator, n_samples * 2U);
-    generate_quadratic_bezier_vertices(&scene->line_renderer.vertices, 5.0f, 3.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
-    generate_cubic_bezier_vertices(&scene->line_renderer.vertices, 5.0f, 3.0f, 8.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
-    generate_polyline_vertices(&scene->line_renderer.vertices, -5.0f, 5.0f, n_samples / 4U);
-    lines_renderer_init(&scene->line_renderer);
+    state->line_renderer.vertices = vertex_buffer_alloc(allocator, n_samples * 2U);
+    generate_quadratic_bezier_vertices(&state->line_renderer.vertices, 5.0f, 3.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
+    generate_cubic_bezier_vertices(&state->line_renderer.vertices, 5.0f, 3.0f, 8.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
+    generate_polyline_vertices(&state->line_renderer.vertices, -5.0f, 5.0f, n_samples / 4U);
+    lines_renderer_init(&state->line_renderer);
 
     double xpos, ypos;
     glfwGetCursorPos(scene->window, &xpos, &ypos);
@@ -42,7 +48,8 @@ void plotting_scene_init(Region* allocator, Scene* scene) {
     glfwSetWindowUserPointer(scene->window, &scene->camera);
 }
 void plotting_scene_render(Scene* scene) {
-    lines_renderer_draw(&scene->line_renderer, &scene->camera);
+    PlottingState* state = (PlottingState*) scene->state;
+    lines_renderer_draw(&state->line_renderer, &scene->camera);
 }
 void plotting_scene_update(Scene* scene, float t) {
     camera_update(&scene->camera);

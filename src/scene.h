@@ -18,9 +18,8 @@ struct Scene {
     GLFWwindow* window;
 
     PerspectiveCamera camera;
-    LinesRenderer axis_renderer;
-    MeshRenderer mesh_renderer;
-    LinesRenderer line_renderer;
+
+    void* state;
 
     scene_init init_fn;
     scene_render render_fn;

@@ -14,6 +14,11 @@ Vertex AXIS_LINES[] = {
     {.pos={0.0f, 0.0f, 1.0f, 1.0f}, .color={0.0f, 0.0f, 1.0f, 1.0f}, .normal={0.0f, 0.0f, 0.0f, 1.0f}},
 };
 
+typedef struct {
+    LinesRenderer axis_renderer;
+    MeshRenderer mesh_renderer;
+} TeapotState;
+
 Mesh load_teapot_vertices(Region* allocator, const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -75,20 +80,23 @@ void teapot_scene_init(Region* allocator, Scene* scene) {
         .diffuse = {1.0f, 1.0f, 1.0f}
     };
 
-    scene->mesh_renderer.material = material;
-    scene->mesh_renderer.light = light;
-    scene->mesh_renderer.mesh = load_teapot_vertices(allocator, "assets/meshes/teapot_large.txt");
-    mesh_renderer_init(&scene->mesh_renderer);
-    mat4x4f_set_identity(scene->mesh_renderer.model);
+    scene->state = region_alloc(allocator, sizeof(TeapotState));
+    TeapotState* state = (TeapotState*) scene->state;
 
-    scene->axis_renderer.resolution[0] = SCREEN_WIDTH;
-    scene->axis_renderer.resolution[1] = SCREEN_HEIGHT;
-    scene->axis_renderer.thickness = 3.0f;
-    scene->axis_renderer.aa_radius[0] = 1.0f;
-    scene->axis_renderer.aa_radius[1] = 1.0f;
-    scene->axis_renderer.vertices = vertex_buffer_alloc(allocator, 6U);
-    generate_axis_vertices(&scene->axis_renderer.vertices);
-    lines_renderer_init(&scene->axis_renderer);
+    state->mesh_renderer.material = material;
+    state->mesh_renderer.light = light;
+    state->mesh_renderer.mesh = load_teapot_vertices(allocator, "assets/meshes/teapot_large.txt");
+    mesh_renderer_init(&state->mesh_renderer);
+    mat4x4f_set_identity(state->mesh_renderer.model);
+
+    state->axis_renderer.resolution[0] = SCREEN_WIDTH;
+    state->axis_renderer.resolution[1] = SCREEN_HEIGHT;
+    state->axis_renderer.thickness = 3.0f;
+    state->axis_renderer.aa_radius[0] = 1.0f;
+    state->axis_renderer.aa_radius[1] = 1.0f;
+    state->axis_renderer.vertices = vertex_buffer_alloc(allocator, 6U);
+    generate_axis_vertices(&state->axis_renderer.vertices);
+    lines_renderer_init(&state->axis_renderer);
 
     double xpos, ypos;
     glfwGetCursorPos(scene->window, &xpos, &ypos);
@@ -113,11 +121,13 @@ void teapot_scene_init(Region* allocator, Scene* scene) {
 }
 
 void teapot_scene_render(Scene* scene) { 
-    mesh_renderer_draw(&scene->mesh_renderer, &scene->camera);
-    lines_renderer_draw(&scene->axis_renderer, &scene->camera);
+    TeapotState* state = (TeapotState*) scene->state;
+    mesh_renderer_draw(&state->mesh_renderer, &scene->camera);
+    lines_renderer_draw(&state->axis_renderer, &scene->camera);
 }
 void teapot_scene_update(Scene* scene, float t) { 
-    mat4x4f_set_identity(scene->mesh_renderer.model);
+    TeapotState* state = (TeapotState*) scene->state;
+    mat4x4f_set_identity(state->mesh_renderer.model);
     Vec3f rot_axis = {0.0f, 0.0f, 1.0f};
     Vec3f rot_axis2 = {0.0f, 1.0f, 0.5f};
     vec3f_normalize(rot_axis);
@@ -129,8 +139,8 @@ void teapot_scene_update(Scene* scene, float t) {
 
     Quat rot = {0};
     quat_slerp(rot_start, rot_end, t, rot);
-    mat4x4f_rotate(scene->mesh_renderer.model, rot_axis, degrees_to_rad(180.0f) * t);
-    mat4x4f_rotate_q(scene->mesh_renderer.model, rot);
+    mat4x4f_rotate(state->mesh_renderer.model, rot_axis, degrees_to_rad(180.0f) * t);
+    mat4x4f_rotate_q(state->mesh_renderer.model, rot);
 
     camera_update(&scene->camera);
 }
