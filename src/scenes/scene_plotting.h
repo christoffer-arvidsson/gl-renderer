@@ -1,13 +1,9 @@
 
-#ifndef SCENES_SCENE_plotting_H_
-#define SCENES_SCENE_plotting_H_
+#ifndef SCENES_SCENE_PLOTTING_H_
+#define SCENES_SCENE_PLOTTING_H_
 
-#include "../arena.h"
 #include "../scene.h"
 
-void plotting_scene_init(Region* allocator, Scene* scene);
-void plotting_scene_render(Scene* scene);
-void plotting_scene_update(Scene* scene, float t);
-void plotting_scene_deinit(Scene* scene);
+Scene plotting_scene_create(GLFWwindow* window);
 
-#endif  // SCENES_SCENE_plotting_H_
+#endif  // SCENES_SCENE_PLOTTING_H_

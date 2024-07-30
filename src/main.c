@@ -123,21 +123,8 @@ int main() {
 
     Region allocator = region_alloc_alloc(REGION_SIZE);
 
-    Scene scene = {
-        .window = window,
-        .init_fn = &teapot_scene_init,
-        .render_fn = &teapot_scene_render,
-        .update_fn = &teapot_scene_update,
-        .deinit_fn = &teapot_scene_deinit,
-    };
-
-    // Scene scene = {
-    //     .window = window,
-    //     .init_fn = &plotting_scene_init,
-    //     .render_fn = &plotting_scene_render,
-    //     .update_fn = &plotting_scene_update,
-    //     .deinit_fn = &plotting_scene_deinit,
-    // };
+    Scene scene = plotting_scene_create(window);
+    // Scene scene = teapot_scene_create(window);
 
     scene.init_fn(&allocator, &scene);
 

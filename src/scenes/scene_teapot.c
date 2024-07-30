@@ -147,3 +147,12 @@ void teapot_scene_deinit(Scene* scene) {
     // free stuff here
 }
 
+Scene teapot_scene_create(GLFWwindow* window) {
+    return (Scene){
+        .window = window,
+        .init_fn = &teapot_scene_init,
+        .render_fn = &teapot_scene_render,
+        .update_fn = &teapot_scene_update,
+        .deinit_fn = &teapot_scene_deinit,
+    };
+}

@@ -56,3 +56,13 @@ void plotting_scene_update(Scene* scene, float t) {
 void plotting_scene_deinit(Scene* scene) {
     // todo
 }
+
+Scene plotting_scene_create(GLFWwindow* window) {
+    return (Scene){
+        .window = window,
+        .init_fn = &plotting_scene_init,
+        .render_fn = &plotting_scene_render,
+        .update_fn = &plotting_scene_update,
+        .deinit_fn = &plotting_scene_deinit,
+    };
+}
