@@ -5,6 +5,7 @@
 #include "mesh.h"
 #include "quat.h"
 #include "shader.h"
+#include "shape.h"
 #include "stdbool.h"
 #include "stddef.h"
 #include "trig.h"
@@ -134,7 +135,11 @@ GLFWwindow *create_window() {
 
     return window;
 }
-
+void generate_axis_vertices(VertexBuffer* vb) {
+    for (size_t i = 0U; i < 6U; ++i) {
+        vertex_buffer_push(vb, &AXIS_LINES[i]);
+    }
+}
 
 int main() {
     GLFWwindow *window = create_window();
@@ -163,14 +168,25 @@ int main() {
 
     LinesRenderer axis_renderer = {
         .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
-        .thickness = 2.0f,
-        .aa_radius = {3.0f, 3.0f}
+        .thickness = 3.0f,
+        .aa_radius = {1.0f, 1.0f}
     };
     axis_renderer.vertices = vertex_buffer_alloc(&allocator, 6U);
-    for (size_t i = 0U; i < 6U; ++i) {
-        vertex_buffer_push(&axis_renderer.vertices, &AXIS_LINES[i]);
-    }
+    generate_axis_vertices(&axis_renderer.vertices);
     lines_renderer_init(&axis_renderer);
+
+    LinesRenderer function_renderer = {
+        .resolution = {SCREEN_WIDTH, SCREEN_HEIGHT},
+        .thickness = 3.0f,
+        .aa_radius = {2.0f, 0.0f}
+    };
+
+    size_t n_samples = 1000U;
+    function_renderer.vertices = vertex_buffer_alloc(&allocator, n_samples * 2U);
+    generate_quadratic_bezier_vertices(&function_renderer.vertices, 5.0f, 3.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
+    generate_cubic_bezier_vertices(&function_renderer.vertices, 5.0f, 3.0f, 8.0f, 8.0f, 0.0f, 1.0f, n_samples / 4U);
+    generate_polyline_vertices(&function_renderer.vertices, -5.0f, 5.0f, n_samples / 4U);
+    lines_renderer_init(&function_renderer);
 
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
@@ -219,6 +235,7 @@ int main() {
         camera_update(&camera);
         mesh_renderer_draw(&mesh_renderer, &camera, model);
         lines_renderer_draw(&axis_renderer, &camera);
+        lines_renderer_draw(&function_renderer, &camera);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
