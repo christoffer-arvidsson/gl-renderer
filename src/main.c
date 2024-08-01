@@ -102,7 +102,7 @@ GLFWwindow *create_window() {
         fprintf(stderr, "ERROR: Support for EXT_draw_instanced is required!\n");
         exit(1);
     }
-    // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(message_callback, 0);
@@ -142,6 +142,7 @@ int main() {
     }
 
     scene.deinit_fn(&scene);
+    region_alloc_free(&allocator);
 
     return 0;
 }

@@ -14,6 +14,12 @@ Region region_alloc_alloc(size_t capacity) {
     return r;
 }
 
+void region_alloc_free(Region* r) {
+    free(r->data);
+    r->size = 0U;
+    r->capacity = 0U;
+}
+
 void* region_alloc(Region* r, size_t size) {
     assert(r->size+size <= r->capacity);
     void* res = &r->data[r->size];
@@ -29,3 +35,4 @@ void region_rollback(Region* r, size_t size) {
     assert((int)r->size - (int)size >= 0);
     r->size -= size;
 }
+
