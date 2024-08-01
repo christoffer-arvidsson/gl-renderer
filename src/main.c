@@ -35,16 +35,21 @@ void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
 
 void camera_mouse_callback(GLFWwindow *window, double x_offset,
                            double y_offset) {
+
+
     PerspectiveCamera *camera = glfwGetWindowUserPointer(window);
     float x_off = camera->last_cursor_position_x - (float)x_offset;
     float y_off = (float)y_offset - camera->last_cursor_position_y;
     camera->last_cursor_position_x = x_offset;
     camera->last_cursor_position_y = y_offset;
+
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
+        return;
+    }
     x_off *= camera->sensitivity;
     y_off *= camera->sensitivity;
     camera->yaw += x_off;
     camera->pitch += y_off;
-
     camera->pitch = fmaxf(fminf(camera->pitch, 89.0f), -89.0f);
 
     camera_update(camera);
@@ -79,7 +84,7 @@ GLFWwindow *create_window() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-    glfwWindowHint(GLFW_CENTER_CURSOR, GLFW_TRUE);
+    // glfwWindowHint(GLFW_CENTER_CURSOR, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow *window =
@@ -111,7 +116,6 @@ GLFWwindow *create_window() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, camera_mouse_callback);
     glfwSetKeyCallback(window, key_callback);
 
