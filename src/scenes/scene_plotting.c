@@ -35,6 +35,7 @@ void plotting_scene_init(Region* allocator, Scene* scene) {
         .pitch = 30.0f,
         .speed = 2.5f,
         .sensitivity = 0.1f,
+        .zoom_sensitivity = 3.0f,
         .z_near = 0.1f,
         .z_far = 500.0f,
         .fov_half_degrees = 45.0f,

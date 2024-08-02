@@ -33,11 +33,20 @@ void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
             message);
 }
 
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    PerspectiveCamera* camera = glfwGetWindowUserPointer(window);
+    if (yoffset > 0.0) {
+        camera_move(camera, FORWARD, camera->zoom_sensitivity);
+    } else {
+        camera_move(camera, BACKWARD, camera->zoom_sensitivity);
+    }
+}
+
 void camera_mouse_callback(GLFWwindow *window, double x_offset,
                            double y_offset) {
 
 
-    PerspectiveCamera *camera = glfwGetWindowUserPointer(window);
+    PerspectiveCamera* camera = glfwGetWindowUserPointer(window);
     float x_off = camera->last_cursor_position_x - (float)x_offset;
     float y_off = (float)y_offset - camera->last_cursor_position_y;
     camera->last_cursor_position_x = x_offset;
@@ -65,16 +74,16 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
         glfwSetWindowShouldClose(window, true);
     } else if ((key == GLFW_KEY_LEFT || key == GLFW_KEY_W) &&
         (action == GLFW_REPEAT || action == GLFW_PRESS)) {
-        camera_move(camera, LEFT);
+        camera_move(camera, LEFT, 1.0f);
     } else if ((key == GLFW_KEY_RIGHT || key == GLFW_KEY_B) &&
         (action == GLFW_REPEAT || action == GLFW_PRESS)) {
-        camera_move(camera, RIGHT);
+        camera_move(camera, RIGHT, 1.0f);
     } else if ((key == GLFW_KEY_UP || key == GLFW_KEY_F) &&
         (action == GLFW_REPEAT || action == GLFW_PRESS)) {
-        camera_move(camera, FORWARD);
+        camera_move(camera, FORWARD, 1.0f);
     } else if ((key == GLFW_KEY_DOWN || key == GLFW_KEY_P) &&
         (action == GLFW_REPEAT || action == GLFW_PRESS)) {
-        camera_move(camera, BACKWARD);
+        camera_move(camera, BACKWARD, 1.0f);
     }
 }
 
@@ -118,6 +127,7 @@ GLFWwindow *create_window() {
 
     glfwSetCursorPosCallback(window, camera_mouse_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     return window;
 }

@@ -45,22 +45,30 @@ void camera_update(PerspectiveCamera *camera) {
     camera_update_projection_matrix(camera, camera->projection);
 }
 
-void camera_move(PerspectiveCamera *camera, enum CameraDir dir) {
+void camera_move(PerspectiveCamera *camera, enum CameraDir dir, float amount) {
     switch (dir) {
         case FORWARD: {
-            vec3f_add(camera->position, camera->front, camera->position);
+            Vec3f f; vec3f_clone(camera->front, f);
+            vec3f_scale(f, amount, f);
+            vec3f_add(camera->position, f, camera->position);
             break;
         }
         case BACKWARD: {
-            vec3f_sub(camera->position, camera->front, camera->position);
+            Vec3f f; vec3f_clone(camera->front, f);
+            vec3f_scale(f, amount, f);
+            vec3f_sub(camera->position, f, camera->position);
             break;
         }
         case RIGHT: {
-            vec3f_sub(camera->position, camera->right, camera->position);
+            Vec3f f; vec3f_clone(camera->right, f);
+            vec3f_scale(f, amount, f);
+            vec3f_sub(camera->position, f, camera->position);
             break;
         }
         case LEFT: {
-            vec3f_add(camera->position, camera->right, camera->position);
+            Vec3f f; vec3f_clone(camera->right, f);
+            vec3f_scale(f, amount, f);
+            vec3f_add(camera->position, f, camera->position);
             break;
         }
         default:
