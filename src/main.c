@@ -35,10 +35,13 @@ void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
     PerspectiveCamera* camera = glfwGetWindowUserPointer(window);
+    printf("%.2f\n", camera->fov_half_degrees);
     if (yoffset > 0.0) {
-        camera_move(camera, FORWARD, camera->zoom_sensitivity);
+        camera->fov_half_degrees = fmaxf(camera->fov_half_degrees - 1.0f, camera->min_fov);
+        // camera_move(camera, FORWARD, camera->zoom_sensitivity);
     } else {
-        camera_move(camera, BACKWARD, camera->zoom_sensitivity);
+        camera->fov_half_degrees = fminf(camera->fov_half_degrees + 1.0f, camera->max_fov);
+        // camera_move(camera, BACKWARD, camera->zoom_sensitivity);
     }
 }
 

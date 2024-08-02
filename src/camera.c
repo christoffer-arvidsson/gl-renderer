@@ -76,3 +76,20 @@ void camera_move(PerspectiveCamera *camera, enum CameraDir dir, float amount) {
     }
 }
 
+void camera_init_default(PerspectiveCamera* camera) {
+    *camera = (PerspectiveCamera){ 
+        .z_near = 0.1f,
+        .z_far = 500.0f,
+        .position = {50.0f, 50.0f, 50.0f},
+        .yaw = 45.0f,
+        .pitch = 30.0f,
+        .speed = 2.5f,
+        .sensitivity = 0.1f,
+        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
+        .viewport = {SCREEN_WIDTH, SCREEN_HEIGHT},
+        .fov_half_degrees = 45.0f,
+        .min_fov = 0.0f,
+        .max_fov = 45.0f,
+        .zoom_sensitivity = 3.0f,
+    };
+}

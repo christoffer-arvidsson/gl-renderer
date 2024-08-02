@@ -1,6 +1,7 @@
 #ifndef CAMERA_H_
 #define CAMERA_H_
 
+#include "constants.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -12,7 +13,6 @@ enum CameraDir {
 };
 
 typedef struct {
-    float fov_half_degrees;
     float z_near;
     float z_far;
 
@@ -24,9 +24,13 @@ typedef struct {
     float pitch;
     float speed;
     float sensitivity;
-    float zoom_sensitivity;
     float aspect;
     Vec2f viewport;
+
+    float fov_half_degrees;
+    float min_fov;
+    float max_fov;
+    float zoom_sensitivity;
 
     float last_cursor_position_x;
     float last_cursor_position_y;
@@ -40,5 +44,7 @@ void camera_update(PerspectiveCamera* camera);
 void camera_move(PerspectiveCamera* camera, enum CameraDir dir, float amount);
 
 void camera_to_mat4(PerspectiveCamera* camera, Mat4x4f dest);
+
+void camera_init_default(PerspectiveCamera* camera);
 
 #endif // CAMERA_H_

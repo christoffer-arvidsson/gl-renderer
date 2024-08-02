@@ -28,22 +28,9 @@ void plotting_scene_init(Region* allocator, Scene* scene) {
 
     double xpos, ypos;
     glfwGetCursorPos(scene->window, &xpos, &ypos);
-
-    scene->camera = (PerspectiveCamera) {
-        .position = {50.0f, 50.0f, 50.0f},
-        .yaw = 45.0f,
-        .pitch = 30.0f,
-        .speed = 2.5f,
-        .sensitivity = 0.1f,
-        .zoom_sensitivity = 3.0f,
-        .z_near = 0.1f,
-        .z_far = 500.0f,
-        .fov_half_degrees = 45.0f,
-        .aspect = (float)(SCREEN_WIDTH) / (float)(SCREEN_HEIGHT),
-        .viewport = {SCREEN_WIDTH, SCREEN_HEIGHT},
-        .last_cursor_position_x = (float)xpos,
-        .last_cursor_position_y = (float)ypos,
-    };
+    camera_init_default(&scene->camera);
+    scene->camera.last_cursor_position_x = xpos;
+    scene->camera.last_cursor_position_y = ypos;
 
     glfwSetWindowUserPointer(scene->window, &scene->camera);
 }
