@@ -1,10 +1,11 @@
 #ifndef SCENE_H_
 #define SCENE_H_
 
+#include <GLFW/glfw3.h>
+
 #include "camera.h"
 #include "line.h"
 #include "mesh.h"
-#include <GLFW/glfw3.h>
 
 typedef struct Scene Scene;
 
@@ -14,16 +15,16 @@ typedef void (*scene_update)(Scene *scene, float t);
 typedef void (*scene_deinit)(Scene *scene);
 
 struct Scene {
-  GLFWwindow *window;
+    GLFWwindow *window;
 
-  PerspectiveCamera camera;
+    PerspectiveCamera camera;
 
-  void *state;
+    void *state;
 
-  scene_init init_fn;
-  scene_render render_fn;
-  scene_update update_fn;
-  scene_deinit deinit_fn;
+    scene_init init_fn;
+    scene_render render_fn;
+    scene_update update_fn;
+    scene_deinit deinit_fn;
 };
 
-#endif // SCENE_H_
+#endif  // SCENE_H_

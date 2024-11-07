@@ -16,6 +16,11 @@ $(TARGET): $(SRC)
 run: $(TARGET)
 	$(TARGET)
 
+.PHOLY: format
+format:
+	find . -name "*.c" | xargs clang-format -i
+	find . -name "*.h" | xargs clang-format -i
+
 .PHONY: clean
 clean:
 	rm -f $(TARGET)

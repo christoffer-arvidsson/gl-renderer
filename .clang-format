@@ -1,0 +1,5 @@
+BasedOnStyle: Google
+# Customize options below
+IndentWidth: 4        # Google style usually has 2-space indents
+ColumnLimit: 80       # Wrap lines at 80 characters
+UseTab: Never         # Use spaces instead of tabs

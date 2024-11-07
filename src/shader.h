@@ -1,11 +1,12 @@
 #ifndef SHADER_H_
 #define SHADER_H_
 
-#include "linalg.h"
 #include <GL/glew.h>
 
+#include "linalg.h"
+
 typedef struct {
-  GLuint program_id;
+    GLuint program_id;
 } Shader;
 
 void shader_create(const char *vert_path, const char *frag_path,
@@ -19,4 +20,4 @@ void shader_set_vec2f(const Shader *shader, char *name, const Vec2f v);
 void shader_set_float(const Shader *shader, char *name, float v);
 void shader_set_int(const Shader *shader, char *name, int v);
 
-#endif // SHADER_H_
+#endif  // SHADER_H_

@@ -1,12 +1,13 @@
 #ifndef LINALG_H_
 #define LINALG_H_
 
-#include "linalg.h"
-#include "math.h"
 #include <immintrin.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "linalg.h"
+#include "math.h"
 
 #define PI 3.14159265358979323846264338327950288
 
@@ -35,21 +36,21 @@ void vec4f_normalize(Vec4f v);
 
 // Matrix
 
-#define MAT4X4F_IDENTITY_INITIALIZER                                           \
-  {                                                                            \
-    {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f},                        \
-        {0.0f, 0.0f, 1.0f, 0.0f}, {                                            \
-      0.0f, 0.0f, 0.0f, 1.0f                                                   \
-    }                                                                          \
-  }
+#define MAT4X4F_IDENTITY_INITIALIZER                        \
+    {                                                       \
+        {1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, \
+            {0.0f, 0.0f, 1.0f, 0.0f}, {                     \
+            0.0f, 0.0f, 0.0f, 1.0f                          \
+        }                                                   \
+    }
 
-#define MAT4X4F_ZERO_INITIALIZER                                               \
-  {                                                                            \
-    {0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f},                        \
-        {0.0f, 0.0f, 0.0f, 0.0f}, {                                            \
-      0.0f, 0.0f, 0.0f, 0.0f                                                   \
-    }                                                                          \
-  }
+#define MAT4X4F_ZERO_INITIALIZER                            \
+    {                                                       \
+        {0.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f}, \
+            {0.0f, 0.0f, 0.0f, 0.0f}, {                     \
+            0.0f, 0.0f, 0.0f, 0.0f                          \
+        }                                                   \
+    }
 
 void mat4x4f_print(const Mat4x4f m);
 void mat4x4f_set_zeroes(Mat4x4f dest);
@@ -82,4 +83,4 @@ float lerp(float a, float b, float t);
 float quadratic_bezier(float a, float b, float c, float t);
 float cubic_bezier(float a, float b, float c, float d, float t);
 
-#endif // LINALG_H_
+#endif  // LINALG_H_
