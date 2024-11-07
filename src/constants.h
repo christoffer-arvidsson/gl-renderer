@@ -4,4 +4,4 @@
 #define SCREEN_WIDTH 1920U
 #define SCREEN_HEIGHT 1080U
 
-#endif  // CONSTATS_H_
+#endif // CONSTATS_H_

@@ -3,6 +3,6 @@
 
 #include "../scene.h"
 
-Scene teapot_scene_create(GLFWwindow* window);
+Scene teapot_scene_create(GLFWwindow *window);
 
-#endif  // SCENES_SCENE_TEAPOT_H_
+#endif // SCENES_SCENE_TEAPOT_H_
